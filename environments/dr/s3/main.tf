@@ -45,7 +45,7 @@ module "s3" {
 resource "aws_s3_bucket_replication_configuration" "primary_to_dr" {
   provider = aws.primary
   
-  role   = data.terraform_remote_state.iam.outputs.s3_replication_role_arn
+  role = data.terraform_remote_state.iam.outputs.s3_replication_role_arn
   bucket = data.terraform_remote_state.primary_s3.outputs.bucket_name
 
   rule {

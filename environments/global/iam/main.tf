@@ -148,6 +148,8 @@ module "ecs_task" {
         "s3:GetBucketAcl",
         "s3:GetBucketCORS",
         "s3:GetBucketPolicy",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketOwnershipControls",
         "s3:CreateMultipartUpload",
         "s3:ListMultipartUploadParts",
         "s3:AbortMultipartUpload",
