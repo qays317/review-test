@@ -25,5 +25,5 @@ module "s3" {
     vpc_id = data.terraform_remote_state.network.outputs.vpc_id
     s3_bucket_name = var.s3_bucket_name
     oac_arn = data.terraform_remote_state.oac.outputs.oac_arn
-    cloudfront_media_distribution_arn = var.media_distribution_arn
+    cloudfront_media_distribution_arn = var.cloudfront_media_distribution_arn
 }
