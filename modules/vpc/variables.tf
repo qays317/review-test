@@ -20,10 +20,10 @@ variable "subnet" {
 variable "nat_gateway_subnet_name" {
     type = string
 }
-
+/*
 variable "networkfirewall_subnet_name" {
     type = string
-}
+}*/
 
 variable "route_table" {
     type = map(object({

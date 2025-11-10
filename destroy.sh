@@ -52,21 +52,21 @@ destroy_environment() {
 }
 
 
-#destroy_environment "dr/ecs" "ecs.tfvars"
-#destroy_environment "primary/ecs" "ecs.tfvars"
+destroy_environment "dr/ecs" "ecs.tfvars"
+destroy_environment "primary/ecs" "ecs.tfvars"
 
-#destroy_environment "dr/s3" "s3.tfvars"
+destroy_environment "dr/s3" "s3.tfvars"
 
-#destroy_environment "global/cdn_dns" "cdn_dns.tfvars"
+destroy_environment "global/cdn_dns" "cdn_dns.tfvars"
 
-#destroy_environment "dr/alb" "alb.tfvars"
-#destroy_environment "dr/certificate" "certificate.tfvars"
-#destroy_environment "dr/read_replica_rds" "read_replica_rds.tfvars"
-#destroy_environment "dr/network" "network.tfvars"
+destroy_environment "dr/alb" "alb.tfvars"
+destroy_environment "dr/certificate" "certificate.tfvars"
+destroy_environment "dr/read_replica_rds" "read_replica_rds.tfvars"
+destroy_environment "dr/network" "network.tfvars"
 
-#destroy_environment "primary/alb" "alb.tfvars"
-#destroy_environment "primary/s3" "s3.tfvars"
-#destroy_environment "primary/network_rds" "network_rds.tfvars"
+destroy_environment "primary/alb" "alb.tfvars"
+destroy_environment "primary/s3" "s3.tfvars"
+destroy_environment "primary/network_rds" "network_rds.tfvars"
 
 destroy_environment "global/oac" 
 destroy_environment "global/iam" 

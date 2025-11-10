@@ -60,7 +60,7 @@ deploy_environment "primary/alb" "alb.tfvars"
 
 deploy_environment "dr/network" "network.tfvars"
 deploy_environment "dr/read_replica_rds" "read_replica_rds.tfvars"
-#deploy_environment "dr/s3" "s3.tfvars"
+deploy_environment "dr/s3" "s3.tfvars"
 deploy_environment "dr/certificate" "certificate.tfvars"
 deploy_environment "dr/alb" "alb.tfvars"
 
@@ -68,11 +68,11 @@ deploy_environment "global/cdn_dns" "cdn_dns.tfvars"
 CLOUDFRONT_ARN=$(terraform -chdir="environments/global/cdn_dns" output -raw media_distribution_arn)
 terraform -chdir="environments/primary/s3" apply \
   -var-file="s3.tfvars" \
-  -var="media_distribution_arn=$CLOUDFRONT_ARN" \
+  -var="cloudfront_media_distribution_arn=$CLOUDFRONT_ARN" \
   -var="state_bucket=$BUCKET_NAME" \
   -auto-approve
 
 deploy_environment "primary/ecs" "ecs.tfvars"
-#deploy_environment "dr/ecs" "ecs.tfvars"
+deploy_environment "dr/ecs" "ecs.tfvars"
 
 echo "✅ Deployment complete!"

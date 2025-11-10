@@ -47,7 +47,7 @@ resource "aws_nat_gateway" "wordpress" {
   tags = { Name = "wordpress-nat-gateway" }
 }
 
-
+/*
 //==========================================================================================================================================
 //                                                          Network Firewall
 //==========================================================================================================================================
@@ -100,7 +100,7 @@ resource "aws_networkfirewall_firewall" "network_firewall" {
   tags = { Name = "wordpress-network-firewall" }
 }
 
-
+*/
 //==========================================================================================================================================
 //                                                             route tables
 //==========================================================================================================================================
@@ -121,7 +121,7 @@ locals {
           cidr_block = r.cidr_block
           gateway = lookup(r, "gateway", false)
           nat_gateway = lookup(r, "nat_gateway", false)
-          network_firewall = lookup(r, "network_firewall", false)
+          //network_firewall = lookup(r, "network_firewall", false)
       }                                 
     }
   ]...)
@@ -142,7 +142,7 @@ resource "aws_route" "main" {
     destination_cidr_block = each.value.cidr_block
     gateway_id = each.value.gateway ? aws_internet_gateway.wordpress.id : null
     nat_gateway_id = each.value.nat_gateway ? aws_nat_gateway.wordpress.id : null
-    vpc_endpoint_id = each.value.network_firewall ? tolist(aws_networkfirewall_firewall.network_firewall.firewall_status[0].sync_states)[0].attachment[0].endpoint_id : null
+    //vpc_endpoint_id = each.value.network_firewall ? tolist(aws_networkfirewall_firewall.network_firewall.firewall_status[0].sync_states)[0].attachment[0].endpoint_id : null
 }
 
 resource "aws_route_table_association" "main" {     
