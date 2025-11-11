@@ -1,0 +1,109 @@
+```yaml
+# filepath: .github/workflows/mirror-and-deploy.yml
+name: Mirror Docker Hub -> ECR and deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  DOCKERHUB_IMAGE: qaysalnajjad/ecs-wordpress-app:v2.3
+  ECR_REPO_NAME: ecs-wordpress-app
+  AWS_REGION: us-east-1
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    outputs:
+      image_uri: ${{ steps.set_image.outputs.image_uri }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assume AWS role (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.GITHUB_AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve account id
+        id: whoami
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "account=${ACCOUNT_ID}" >> $GITHUB_OUTPUT
+
+      - name: Ensure ECR repo exists
+        run: |
+          aws ecr describe-repositories --repository-names "${ECR_REPO_NAME}" --region "${AWS_REGION}" \
+            || aws ecr create-repository --repository-name "${ECR_REPO_NAME}" --region "${AWS_REGION}"
+
+      - name: Login to ECR
+        run: |
+          ACCOUNT="${{ steps.whoami.outputs.account }}"
+          aws ecr get-login-password --region "${AWS_REGION}" \
+            | docker login --username AWS --password-stdin "${ACCOUNT}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com"
+
+      - name: Login to Docker Hub (optional)
+        if: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN }}
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Pull from Docker Hub
+        run: docker pull "${DOCKERHUB_IMAGE}"
+
+      - name: Tag & push to ECR (primary)
+        run: |
+          ACCOUNT="${{ steps.whoami.outputs.account }}"
+          IMAGE_TAG="${DOCKERHUB_IMAGE##*:}"
+          [ "${IMAGE_TAG}" = "${DOCKERHUB_IMAGE}" ] && IMAGE_TAG=latest || true
+          TARGET="${ACCOUNT}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}"
+          docker tag "${DOCKERHUB_IMAGE}" "${TARGET}"
+          docker push "${TARGET}"
+          echo "target=${TARGET}" >> $GITHUB_OUTPUT
+
+      - name: Set output image_uri
+        id: set_image
+        run: |
+          ACCOUNT="${{ steps.whoami.outputs.account }}"
+          IMAGE_TAG="${DOCKERHUB_IMAGE##*:}"
+          [ "${IMAGE_TAG}" = "${DOCKERHUB_IMAGE}" ] && IMAGE_TAG=latest || true
+          TARGET="${ACCOUNT}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}"
+          echo "image_uri=${TARGET}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: mirror
+    env:
+      # pass the mirrored image into terraform via TF_VAR_*
+      TF_VAR_docker_image_uri_config: ${{ needs.mirror.outputs.image_uri }}
+      # BUCKET_NAME is required by deploy.sh - set it as a repository secret in the fork
+      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assume AWS role (OIDC) for Terraform
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.GITHUB_AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.0"
+
+      - name: Ensure deploy script is executable
+        run: chmod +x ./deploy.sh
+
+      - name: Print mirrored image URI
+        run: |
+          echo "Mirrored image URI (passed to terraform): $TF_VAR_docker_image_uri_config"
+          echo "Using S3 state bucket: $BUCKET_NAME"
+
+      - name: Run deploy.sh
+        run: ./deploy.sh
+```

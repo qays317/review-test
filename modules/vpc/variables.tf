@@ -16,10 +16,11 @@ variable "subnet" {
         map_public_ip_on_launch = bool
     }))
 }
-
+/*
 variable "nat_gateway_subnet_name" {
     type = string
 }
+*/
 /*
 variable "networkfirewall_subnet_name" {
     type = string

@@ -23,7 +23,7 @@ resource "aws_subnet" "main" {
     tags = { Name = each.key }
 }
 
-
+/*
 //==========================================================================================================================================
 //                                                          Internet gateaway
 //==========================================================================================================================================
@@ -46,7 +46,7 @@ resource "aws_nat_gateway" "wordpress" {
   subnet_id = aws_subnet.main[var.nat_gateway_subnet_name].id
   tags = { Name = "wordpress-nat-gateway" }
 }
-
+*/
 /*
 //==========================================================================================================================================
 //                                                          Network Firewall
@@ -119,8 +119,8 @@ locals {
         "${rt_key}.${r_key}" => {
           rt_key = rt_key
           cidr_block = r.cidr_block
-          gateway = lookup(r, "gateway", false)
-          nat_gateway = lookup(r, "nat_gateway", false)
+          //gateway = lookup(r, "gateway", false)
+          //nat_gateway = lookup(r, "nat_gateway", false)
           //network_firewall = lookup(r, "network_firewall", false)
       }                                 
     }
@@ -140,8 +140,8 @@ resource "aws_route" "main" {
   for_each = local.routes
     route_table_id = aws_route_table.main[each.value.rt_key].id
     destination_cidr_block = each.value.cidr_block
-    gateway_id = each.value.gateway ? aws_internet_gateway.wordpress.id : null
-    nat_gateway_id = each.value.nat_gateway ? aws_nat_gateway.wordpress.id : null
+    //gateway_id = each.value.gateway ? aws_internet_gateway.wordpress.id : null
+    //nat_gateway_id = each.value.nat_gateway ? aws_nat_gateway.wordpress.id : null
     //vpc_endpoint_id = each.value.network_firewall ? tolist(aws_networkfirewall_firewall.network_firewall.firewall_status[0].sync_states)[0].attachment[0].endpoint_id : null
 }
 

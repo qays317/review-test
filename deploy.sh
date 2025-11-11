@@ -2,9 +2,20 @@
 
 set -e  # Exit on any error
 
-# Configuration - BUCKET_NAME should be set as environment variable
-REGION="eu-central-1"
+# Configuration
+# BACKEND_REGION is where Terraform state (S3 backend) lives. Default to eu-central-1 (DR region).
+BACKEND_REGION="${BACKEND_REGION:-eu-central-1}"
 
+# Deployment region for AWS CLI / Terraform provider is taken from AWS_REGION environment variable
+# (the GitHub Actions job should set AWS_REGION=us-east-1 for primary deployment).
+# If not set, Terraform/AWS CLI will fall back to default region behavior.
+if [ -z "${AWS_REGION:-}" ]; then
+  echo "WARNING: AWS_REGION not set, AWS CLI/terraform will use its default region behavior."
+else
+  echo "Deployment AWS region (AWS_REGION) = ${AWS_REGION}"
+fi
+
+# BUCKET_NAME (S3 for Terraform state) must be set as environment variable (we will create it in BACKEND_REGION)
 if [ -z "$BUCKET_NAME" ]; then
     echo "❌ ERROR: BUCKET_NAME environment variable is required"
     echo "Local: export BUCKET_NAME=your-bucket-name"
@@ -13,16 +24,18 @@ if [ -z "$BUCKET_NAME" ]; then
 fi
 
 echo "Deploying WordPress Infrastructure..."
+echo "Using S3 backend region (state): $BACKEND_REGION"
+echo "Using deployment region (AWS_REGION): ${AWS_REGION:-<not-set>}"
 echo "Using S3 bucket: $BUCKET_NAME"
 
-# Check if bucket exists, create if not
-if ! aws s3 ls "s3://$BUCKET_NAME" 2>/dev/null; then
-    echo "Creating S3 bucket: $BUCKET_NAME"
-    aws s3 mb "s3://$BUCKET_NAME" --region $REGION
-    aws s3api put-bucket-versioning --bucket "$BUCKET_NAME" --versioning-configuration Status=Enabled
-    echo "✅ S3 bucket created and versioning enabled"
+# Check if bucket exists in BACKEND_REGION, create if not
+if ! aws s3 ls "s3://$BUCKET_NAME" --region "$BACKEND_REGION" 2>/dev/null; then
+    echo "Creating S3 bucket: $BUCKET_NAME in region $BACKEND_REGION"
+    aws s3 mb "s3://$BUCKET_NAME" --region "$BACKEND_REGION"
+    aws s3api put-bucket-versioning --bucket "$BUCKET_NAME" --versioning-configuration Status=Enabled --region "$BACKEND_REGION"
+    echo "✅ S3 bucket created and versioning enabled in $BACKEND_REGION"
 else
-    echo "✅ S3 bucket already exists"
+    echo "✅ S3 bucket already exists in $BACKEND_REGION"
 fi
 
 deploy_environment() {
@@ -30,11 +43,11 @@ deploy_environment() {
     local env_var_file=$2
     echo "Deploying $env_name..."
     
-    # Always override backend config with variables
+    # Use BACKEND_REGION for backend-config so state is stored in BACKEND_REGION.
     terraform -chdir="environments/$env_name" init -reconfigure -upgrade \
         -backend-config="bucket=$BUCKET_NAME" \
         -backend-config="key=environments/$env_name.tfstate" \
-        -backend-config="region=$REGION"
+        -backend-config="region=$BACKEND_REGION"
 
     if [ -z "$env_var_file" ]; then    
         if ! terraform -chdir="environments/$env_name" apply -var="state_bucket=$BUCKET_NAME" -auto-approve; then
@@ -51,6 +64,7 @@ deploy_environment() {
     fi
 }
 
+# Deploy sequence (unchanged)
 deploy_environment "global/iam" 
 deploy_environment "global/oac" 
 
