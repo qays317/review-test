@@ -21,7 +21,14 @@ variable "ecs_task_definition" {
 variable "docker_image_uri" {
   type = string
 }
-  
+
+variable "enable_ecr_pull_through" {
+  description = "Enable creating an ECR pull-through cache rule (requires upstream auth if registry requires it)"
+  type        = bool
+  default     = false
+}  
+
+
 variable "s3_bucket_name" {
   type = string
 }

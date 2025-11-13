@@ -92,83 +92,12 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   tags = { Name = "secretsmanager-endpoint" }
 }
 
-# Add tags to RDS-managed master secret
-resource "null_resource" "tag_rds_secret" {
-  provisioner "local-exec" {
-    command = "aws secretsmanager tag-resource --secret-id ${aws_db_instance.rds.master_user_secret[0].secret_arn} --tags Key=project,Value=wordpress Key=component,Value=secret"
-  }
-  depends_on = [aws_db_instance.rds]
-}
-/*
 
+/*
 //==========================================================================================================================================
 //                                                            Lambda
 //==========================================================================================================================================
-
-resource "aws_iam_role" "lambda" {
-  name = "lambda-wordpress-db-setup-role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-# Policy attachment (basic Lambda execution permissions: VPC networking & CloudWatch Logs)
-resource "aws_iam_role_policy_attachment" "lambda" {
-  role = aws_iam_role.lambda.name     
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-}
-
-# Inline policy
-resource "aws_iam_role_policy" "lambda" {
-    name = "lambda-wordpress-db-setup-policy"
-    role = aws_iam_role.lambda.id
-
-    policy = jsonencode({
-      Version = "2012-10-17"
-      Statement = [
-        {   # More granular logging control than AWS managed policy
-          Effect = "Allow"
-          Action = [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents"
-          ]
-          Resource = [
-            "arn:aws:logs:${data.aws_region.current.name}:*:log-group:/aws/lambda/wordpress-db-setup",  # To create the log group
-            "arn:aws:logs:${data.aws_region.current.name}:*:log-group:/aws/lambda/wordpress-db-setup:*" # To create log streams and put events in that log group
-          ]
-        },
-        {
-          Effect = "Allow"
-          Action = [
-            "ec2:CreateNetworkInterface",
-            "ec2:DescribeNetworkInterfaces",
-            "ec2:DeleteNetworkInterface"
-          ]
-          Resource = "*"      # All network interfaces that Lambda needs to manage
-        },
-        {
-          Effect = "Allow"
-          Action = ["secretsmanager:GetSecretValue"]
-          Resource = [
-            aws_secretsmanager_secret.wordpress.arn,
-            aws_db_instance.rds.master_user_secret[0].secret_arn
-          ]
-        }
-      ]
-    })
-}
 */
-
 
 # CloudWatch Log Group for Lambda function
 resource "aws_cloudwatch_log_group" "lambda_logs" {

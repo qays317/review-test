@@ -52,24 +52,30 @@ destroy_environment() {
 }
 
 
-destroy_environment "dr/ecs" "ecs.tfvars"
-destroy_environment "primary/ecs" "ecs.tfvars"
 
+
+
+export -f destroy_environment
+export BUCKET_NAME
+export REGION
+
+
+
+
+# Destroy ECS environments in parallel
+parallel --jobs 2 --ungroup --tag destroy_environment ::: "primary/ecs" "dr/ecs" :::+ "ecs.tfvars" "ecs.tfvars"
+# Destroy CDN and DNS last
 destroy_environment "global/cdn_dns" "cdn_dns.tfvars"
-
-destroy_environment "dr/s3" "s3.tfvars"
-destroy_environment "dr/alb" "alb.tfvars"
-destroy_environment "dr/certificate" "certificate.tfvars"
-destroy_environment "dr/read_replica_rds" "read_replica_rds.tfvars"
-destroy_environment "dr/network" "network.tfvars"
-
-destroy_environment "primary/alb" "alb.tfvars"
-destroy_environment "primary/s3" "s3.tfvars"
+# Destroy DR S3, ALB, RDS in parallel
+parallel --jobs 3 --ungroup --tag destroy_environment ::: "dr/s3" "dr/alb" "dr/read_replica_rds" :::+ "s3.tfvars" "alb.tfvars" "read_replica_rds.tfvars"
+# Destroy DR ALB, S3, RDS in parallel
+parallel --jobs 2 --ungroup --tag destroy_environment ::: "dr/certificate" "dr/network" :::+ "certificate.tfvars" "network.tfvars"
+# Destroy Primary S3, ALB in parallel
+parallel --jobs 2 --ungroup --tag destroy_environment ::: "primary/s3" "primary/alb" :::+ "s3.tfvars" "alb.tfvars"
+# Destroy Primary Network and RDS
 destroy_environment "primary/network_rds" "network_rds.tfvars"
-
-destroy_environment "global/oac" 
-destroy_environment "global/iam" 
-
+# Destroy Global OAC and IAM in parallel
+parallel --jobs 2 --ungroup --tag destroy_environment ::: "global/oac" "global/iam"
 
 echo ""
 echo "🎉 All resources have been successfully destroyed!"

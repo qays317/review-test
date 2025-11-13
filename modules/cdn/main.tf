@@ -33,11 +33,11 @@ resource "aws_cloudfront_distribution" "main" {
         }
         
         member {
-          origin_id = "${each.key}-S3-DR"
+          origin_id = "${each.key}-S3-Primary"
         }
         
         member {
-          origin_id = "${each.key}-S3-Primary"
+          origin_id = "${each.key}-S3-DR"
         }
       }
     }

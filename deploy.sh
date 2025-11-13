@@ -64,18 +64,26 @@ deploy_environment() {
     fi
 }
 
-# Deploy sequence (unchanged)
-deploy_environment "global/iam" 
-deploy_environment "global/oac" 
+export -f deploy_environment
+export BACKEND_REGION
+export BUCKET_NAME
+export AWS_REGION
+export AWS_DEFAULT_REGION="$AWS_REGION"
 
-deploy_environment "primary/network_rds" "network_rds.tfvars"
-deploy_environment "primary/s3" "s3.tfvars"
-deploy_environment "primary/alb" "alb.tfvars"
 
-deploy_environment "dr/network" "network.tfvars"
-deploy_environment "dr/read_replica_rds" "read_replica_rds.tfvars"
-deploy_environment "dr/s3" "s3.tfvars"
-deploy_environment "dr/certificate" "certificate.tfvars"
+parallel --jobs 2 --ungroup --tag deploy_environment ::: "global/iam" "global/oac"
+
+#deploy_environment "global/iam"
+ECS_ROLE_ARN=$(terraform -chdir="environments/global/iam" output -raw ecs_task_role_arn 2>/dev/null || echo "")
+echo "Captured ECS_ROLE_ARN=$ECS_ROLE_ARN"
+echo "Captured CF ARNs: $CF_ARNS_JSON"
+
+parallel --jobs 2 --ungroup --tag deploy_environment ::: "primary/network_rds" "dr/network" :::+ "network_rds.tfvars" "network.tfvars"
+
+parallel --jobs 2 --ungroup --tag deploy_environment ::: "primary/s3" "primary/alb" :::+ "s3.tfvars" "alb.tfvars"
+
+parallel --jobs 3 --ungroup --tag deploy_environment ::: "dr/read_replica_rds" "dr/certificate" "dr/s3" :::+ "read_replica_rds.tfvars" "certificate.tfvars" "s3.tfvars"
+
 deploy_environment "dr/alb" "alb.tfvars"
 
 deploy_environment "global/cdn_dns" "cdn_dns.tfvars"
@@ -87,19 +95,21 @@ APP_ARN=$(terraform -chdir="environments/global/cdn_dns" output -raw app_distrib
 # build JSON list with jq (only include non-empty items)
 CF_ARNS_JSON=$(jq -nc --arg m "$MEDIA_ARN" --arg a "$APP_ARN" '[ $m, $a ] | map(select(. != ""))')
 
-# then pass when applying s3
+
+parallel --jobs 2 --ungroup --tag deploy_environment ::: "primary/ecs" "dr/ecs" :::+ "ecs.tfvars" "ecs.tfvars" 
+
+S3_VPC_ENDPOINT_ID=$(terraform -chdir="environments/primary/ecs" output -raw s3_vpc_endpoint_id 2>/dev/null || echo "")
+echo "Captured S3_VPC_ENDPOINT_ID=$S3_VPC_ENDPOINT_ID"
+
+
+echo "Re-applying S3 to update bucket policies with CloudFront and ECS role..."
+terraform -chdir="environments/primary/s3" init -reconfigure -upgrade -backend-config="bucket=$BUCKET_NAME" -backend-config="key=environments/primary/s3.tfstate" -backend-config="region=$BACKEND_REGION"
 terraform -chdir="environments/primary/s3" apply \
   -var-file="s3.tfvars" \
   -var="cloudfront_distribution_arns=${CF_ARNS_JSON}" \
+  -var="ecs_task_role_arn=${ECS_ROLE_ARN}" \
+  -var="s3_vpc_endpoint_id=${S3_VPC_ENDPOINT_ID}" \
   -var="state_bucket=$BUCKET_NAME" \
   -auto-approve
-terraform -chdir="environments/dr/s3" apply \
-  -var-file="s3.tfvars" \
-  -var="cloudfront_distribution_arns=${CF_ARNS_JSON}" \
-  -var="state_bucket=$BUCKET_NAME" \
-  -auto-approve
-
-deploy_environment "primary/ecs" "ecs.tfvars"
-deploy_environment "dr/ecs" "ecs.tfvars"
 
 echo "✅ Deployment complete!"

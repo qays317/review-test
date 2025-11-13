@@ -28,8 +28,12 @@ resource "aws_lb_listener" "wordpress-user-traffic" {
   protocol = "HTTP"
   
   default_action {
-    type = "forward"
-    target_group_arn = aws_lb_target_group.wordpress.arn
+    type = "redirect"
+    redirect {
+      protocol = "HTTPS"
+      port = "443"
+      status_code = "HTTP_301"
+    }
   }
 }
 

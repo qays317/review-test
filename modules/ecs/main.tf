@@ -1,181 +1,17 @@
 /*
 ===================================================================================================================================================================
 ===================================================================================================================================================================
-      The following execution role will be used by ECS service to set up the task:
-        -pull Docker images from Docker Hub
-        -Creates CloudWatch log groups and streams
-        -Retrieves secrets from Secrets Manager to inject into containers 
-        -Sets up networking and task infrastructure
-      It will be used before container starts (during task setup)
-      Not available to the application code
-      ECS Service → Uses Execution Role → Pulls image → Gets secrets → Creates container
+                                                          ECR Pull Through Cache Rule
 ===================================================================================================================================================================
 ===================================================================================================================================================================
 */
-/*
-# IAM role for ECS execution
-resource "aws_iam_role" "ecs_execution_role" {  
-  for_each = var.ecs_task_definition
-    name = "Execution-Role-${each.key}"
-    assume_role_policy = jsonencode({
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            Service = "ecs-tasks.amazonaws.com"
-          }
-        }
-      ]
-    })
-    tags = { Name = "Execution-Role-${each.key}" }
+
+resource "aws_ecr_pull_through_cache_rule" "dockerhub_qaysalnajjad" {
+  count                 = var.enable_ecr_pull_through ? 1 : 0
+  ecr_repository_prefix = "dockerhub-qaysalnajjad"
+  upstream_registry_url = "registry-1.docker.io"
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_execution_role_policy" {
-  for_each = var.ecs_task_definition
-    role = aws_iam_role.ecs_execution_role[each.key].name
-    policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-# The Customer Managed Policy to access the secret
-resource "aws_iam_policy" "secrets_access_policy" {
-  for_each = var.ecs_task_definition
-  name = "wordpress-secrets-access-policy-${each.key}"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret"
-        ]
-        Resource = var.wordpress_secret_arn
-      },
-      # For listing (must be "*")
-      {
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:ListSecrets"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "execution_secrets_policy" {
-  for_each = var.ecs_task_definition
-    role = aws_iam_role.ecs_execution_role[each.key].name
-    policy_arn = aws_iam_policy.secrets_access_policy[each.key].arn
-}
-
-
-/*
-===================================================================================================================================================================
-===================================================================================================================================================================
-      * ECS Task Role for WordPress application runtime access to AWS services.
-      * Database credentials are injected as environment variables by Execution Role (no Secrets Manager access needed)
-      * It will be used after container starts (during application runtime)
-      * Available inside the container
-      * WordPress App → Uses Task Role → Uploads to S3 → Invalidates CloudFront cache
-===================================================================================================================================================================
-===================================================================================================================================================================
-*/
-/*
-# IAM role for ECS tasks to access S3 and CloudFront. WordPress application will use this
-resource "aws_iam_role" "ecs_task_role" {
-  for_each = var.ecs_task_definition
-    name = "Task-Role-${each.key}"
-    assume_role_policy = jsonencode({
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            Service = "ecs-tasks.amazonaws.com"
-          }
-        }
-      ]
-    })
-    tags = { Name = "Task-Role-${each.key}" }
-} 
-
-# The Customer Managed Policy for WordPress runtime access (S3, CloudFront, STS)
-resource "aws_iam_policy" "wordpress_runtime_policy" {
-  for_each = var.ecs_task_definition
-  name = "wordpress-runtime-policy-${each.key}"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:PutObject",
-          "s3:PutObjectAcl",
-          "s3:PutObjectVersionAcl", 
-          "s3:GetObject", 
-          "s3:GetObjectAcl",
-          "s3:GetObjectVersionAcl",
-          "s3:DeleteObject",
-          "s3:DeleteObjectVersion",
-          "s3:RestoreObject",
-          "s3:AbortMultipartUpload",
-          "s3:ListMultipartUploadParts"
-        ]
-        Resource = "${var.s3_bucket_arn}/*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:ListBucket",
-          "s3:GetBucketLocation",
-          "s3:GetBucketVersioning", 
-          "s3:PutBucketVersioning",
-          "s3:GetBucketPolicy",      
-          "s3:PutBucketPolicy",
-          "s3:GetBucketAcl",
-          "s3:GetBucketCORS",
-          "s3:GetBucketOwnershipControls",
-          "s3:GetBucketPublicAccessBlock"
-        ]
-        Resource = var.s3_bucket_arn
-      },
-      {
-        Effect = "Allow"
-        Action = ["s3:ListAllMyBuckets"]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "cloudfront:GetDistribution",
-          "cloudfront:GetDistributionConfig",
-          "cloudfront:ListDistributions",
-          "cloudfront:CreateInvalidation"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "sts:GetCallerIdentity"
-        ]
-        Resource = "*"
-      },
-
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "task_runtime_policy" {
-  for_each = var.ecs_task_definition
-    role = aws_iam_role.ecs_task_role[each.key].name
-    policy_arn = aws_iam_policy.wordpress_runtime_policy[each.key].arn
-}
-*/
 
 /*
 ===================================================================================================================================================================
@@ -227,7 +63,7 @@ locals {
         },
         {
           name = "CLOUDFRONT_DOMAIN"
-          value = var.primary_domain
+          value = var.cloudfront_media_domain
         },
         {
           name = "CLOUDFRONT_DISTRIBUTION_ID"

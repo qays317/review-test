@@ -1,0 +1,17 @@
+{
+  "containerOverrides": [
+    {
+      "name": "wordpress-container",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "echo '=== as3cf_settings ==='; wp option get as3cf_settings --path=/var/www/html --allow-root; \
+         echo '=== attachments ids (first 20) ==='; wp post list --post_type=attachment --format=ids --path=/var/www/html --allow-root | awk '{print $0}' | cut -d' ' -f1-20; \
+         echo '=== dry-run search-replace (S3 -> CloudFront) ==='; \
+         wp search-replace 'https://wordpress-media-prod-200.s3.amazonaws.com/wp-content/uploads' 'https://d3r8wzoxc4rhkk.cloudfront.net/wp-content/uploads' --skip-columns=guid --precise --recurse-objects --dry-run --path=/var/www/html --allow-root; \
+         wp search-replace 'https://wordpress-media-prod-200.s3.us-east-1.amazonaws.com/wp-content/uploads' 'https://d3r8wzoxc4rhkk.cloudfront.net/wp-content/uploads' --skip-columns=guid --precise --recurse-objects --dry-run --path=/var/www/html --allow-root; \
+         echo 'done'; sleep 2"
+      ]
+    }
+  ]
+}
