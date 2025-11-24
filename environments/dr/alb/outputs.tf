@@ -17,8 +17,3 @@ output "alb_security_group_id" {
     value = module.sg_alb.alb_security_group_id
 }
 
-output "primary_domain" {
-    value = var.primary_domain
-}
-
-

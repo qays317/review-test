@@ -1,7 +1,3 @@
-output "lambda_db_setup_role_name" {
-    value = module.lambda_db_setup.role_name
-}
-
 output "lambda_db_setup_role_arn" {
     value = module.lambda_db_setup.role_arn
 }

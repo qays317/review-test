@@ -1,46 +1,26 @@
-data "terraform_remote_state" "network" {
-  backend = "s3"
-  config = {
-    bucket = var.state_bucket
-    key = "environments/dr/network.tfstate"
-    region = "eu-central-1"
-  }  
-}
-
-data "terraform_remote_state" "oac" {
-    backend = "s3"
-    config = {
-      bucket = var.state_bucket
-      key = "environments/global/oac.tfstate"
-      region = "eu-central-1"
-    }
-}
-
 data "terraform_remote_state" "primary_s3" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/primary/s3.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/primary/s3/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
 data "terraform_remote_state" "iam" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/global/iam.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/global/iam/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
 module "s3" {
-    source = "../../../modules/s3"
-    vpc_id = data.terraform_remote_state.network.outputs.vpc_id
-    s3_bucket_name = var.s3_bucket_name
-    oac_arn = data.terraform_remote_state.oac.outputs.oac_arn
-    cloudfront_distribution_arns = var.cloudfront_distribution_arns
-    ecs_task_role_arn = data.terraform_remote_state.iam.outputs.ecs_task_role_arn
+  source = "../../../modules/s3"
+  s3_bucket_name = var.s3_bucket_name
+  cloudfront_distribution_arns = var.cloudfront_distribution_arns
+  ecs_task_role_arn = data.terraform_remote_state.iam.outputs.ecs_task_role_arn
 }
 
 # Cross-region replication from primary to DR

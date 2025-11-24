@@ -48,60 +48,8 @@ resource "aws_nat_gateway" "wordpress" {
   tags = { Name = "wordpress-nat-gateway" }
 }
 */
-/*
-//==========================================================================================================================================
-//                                                          Network Firewall
-//==========================================================================================================================================
 
-resource "aws_networkfirewall_rule_group" "docker_hub_whitelisted" {
-  capacity = 10                             # Maximum number of rules this group can handle - we specify 6 domains
-  name = "docker-hub-whitelisted"
-  type = "STATEFUL"                         # Tracks connection state (remembers ongoing connections)
 
-  rule_group {
-    rules_source {
-      rules_source_list {
-        generated_rules_type = "ALLOWLIST"
-        target_types = ["TLS_SNI"]          # HTTPS traffic only
-        targets = [
-          "registry-1.docker.io",
-          "auth.docker.io", 
-          "production.cloudflare.docker.com",
-          "index.docker.io",
-          "docker.io",
-          "registry.docker.io"
-        ]
-      }
-    }
-  }
-}
-
-resource "aws_networkfirewall_firewall_policy" "firewall_policy" {
-  name = "docker-firewall-policy"
-  
-  firewall_policy {
-    stateful_rule_group_reference {
-      resource_arn = aws_networkfirewall_rule_group.docker_hub_whitelisted.arn
-    }
-    
-    stateless_default_actions = ["aws:forward_to_sfe"]          # Sends all traffic to the stateful engine for inspection
-    stateless_fragment_default_actions = ["aws:forward_to_sfe"] # Sends afragmented packets to the stateful engine
-  }
-}
-
-resource "aws_networkfirewall_firewall" "network_firewall" {
-  name = "wordpress-network-firewall"
-  firewall_policy_arn = aws_networkfirewall_firewall_policy.firewall_policy.arn
-  vpc_id = aws_vpc.wordpress.id
-
-  subnet_mapping {
-    subnet_id = aws_subnet.main[var.networkfirewall_subnet_name].id
-  }
-
-  tags = { Name = "wordpress-network-firewall" }
-}
-
-*/
 //==========================================================================================================================================
 //                                                             route tables
 //==========================================================================================================================================
@@ -123,7 +71,6 @@ locals {
           cidr_block = r.cidr_block
           gateway = lookup(r, "gateway", false)
           //nat_gateway = lookup(r, "nat_gateway", false)
-          //network_firewall = lookup(r, "network_firewall", false)
       }                                 
     }
   ]...)
@@ -144,7 +91,6 @@ resource "aws_route" "main" {
     destination_cidr_block = each.value.cidr_block
     gateway_id = each.value.gateway ? aws_internet_gateway.wordpress.id : null
     //nat_gateway_id = each.value.nat_gateway ? aws_nat_gateway.wordpress.id : null
-    //vpc_endpoint_id = each.value.network_firewall ? tolist(aws_networkfirewall_firewall.network_firewall.firewall_status[0].sync_states)[0].attachment[0].endpoint_id : null
 }
 
 resource "aws_route_table_association" "main" {     

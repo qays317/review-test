@@ -1,9 +1,13 @@
 //==========================================================================================================================================
-//                                                        /modules/infrastructure/outputs.tf
+//                                                       /modules/vpc/outputs.tf
 //==========================================================================================================================================
 
 output "vpc_id" {
   value = aws_vpc.wordpress.id
+}
+
+output "vpc_cidr" {                                             # to be referenced by RDS security group
+  value = aws_vpc.wordpress.cidr_block 
 }
 
 output "private_subnets_ids" {                                  # used for Secrets Manager endpoint, Lambda, ECS tasks, VPC endpoints

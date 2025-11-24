@@ -2,12 +2,28 @@
 //     ALB Variables
 //=============================================================================================================
 
+variable "primary_domain" {
+    type = string  
+    default = ""
+}
+
+variable "hosted_zone_id" {
+    type = string
+    default = ""
+}
+
+variable "provided_ssl_certificate_arn" {
+    type = string
+    default = ""
+}
+
 variable "alb_security_group_config" {
     type = map(object({
         ingress = optional(map(object({
             from_port   = number
             to_port     = number
             ip_protocol = string
+            vpc_cidr = optional(bool)
             cidr_block   = optional(string)
             prefix_list_ids = optional(list(string))
         })))
@@ -15,7 +31,8 @@ variable "alb_security_group_config" {
             from_port   = number
             to_port     = number
             ip_protocol = string
-            cidr_block   = string
+            vpc_cidr = optional(bool)
+            cidr_block   = optional(string)
         })))
     }))
 }
@@ -32,7 +49,7 @@ variable "target_group_config" {
     })
 }
 
-variable "alb_name_config" {
+variable "alb_name" {
     type = string
 }
 

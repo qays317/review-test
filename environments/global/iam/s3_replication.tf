@@ -1,9 +1,9 @@
-# S3 Cross-Region Replication Role
 module "s3_replication" {
   source = "../../../modules/iam"
+
   role_name = "s3-cross-region-replication-role"
-  policy_name = "s3-cross-region-replication-policy"
   assume_role_services = ["s3.amazonaws.com"]
+  policy_name = "s3-cross-region-replication-policy"
   
   managed_policy_arns = []
 
@@ -16,7 +16,7 @@ module "s3_replication" {
         "s3:GetObjectVersionTagging"
       ]
       Resource = [
-        "arn:aws:s3:::wordpress-media-prod-200/*"
+        "arn:aws:s3:::${var.primary_media_s3_bucket}/*"
       ]
     },
     {
@@ -27,7 +27,7 @@ module "s3_replication" {
         "s3:ReplicateTags"
       ]
       Resource = [
-        "arn:aws:s3:::wordpress-media-dr-200/*"
+        "arn:aws:s3:::${var.dr_media_s3_bucket}/*"
       ]
     }
   ]

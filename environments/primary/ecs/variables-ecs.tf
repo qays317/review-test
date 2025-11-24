@@ -20,8 +20,9 @@ variable "ecs_security_group_config" {
   }))
 }
 
-variable "docker_image_uri_config" {
+variable "ecr_image_uri" {
   type = string
+  default = ""
 }
 
 variable "ecs_cluster_name_config" {

@@ -1,5 +1,5 @@
 //==========================================================================================================================================
-//                                                                 S3
+//                                                                  s3
 //==========================================================================================================================================
 
 # S3 Bucket for WordPress Media
@@ -8,9 +8,8 @@ resource "aws_s3_bucket" "wordpress_media" {
   tags = { 
     Name = var.s3_bucket_name
     Description = "WordPress media storage"
-    Project = "wordpress"
-    Component = "s3"
   }
+  force_destroy = true
 }
 
 # S3 Bucket Versioning
@@ -70,7 +69,7 @@ locals {
         Resource = "${aws_s3_bucket.wordpress_media.arn}/*"
         Condition = {
           StringEquals = {
-            "AWS:SourceArn"     = arn
+            "AWS:SourceArn" = arn
             "AWS:SourceAccount" = data.aws_caller_identity.current.account_id
           }
         }
@@ -81,8 +80,8 @@ locals {
   # ECS task role statement (if provided)
   ecs_statement = var.ecs_task_role_arn != "" ? [
     {
-      Sid       = "AllowEcsTaskRoleAccess"
-      Effect    = "Allow"
+      Sid = "AllowEcsTaskRoleAccess"
+      Effect = "Allow"
       Principal = { AWS = var.ecs_task_role_arn }
       Action = [
         "s3:GetObject",
@@ -100,8 +99,8 @@ locals {
   # VPCE statement (if provided) — use the correct variable name
   vpce_statement = var.s3_vpc_endpoint_id != "" ? [
     {
-      Sid       = "AllowVPCEAccess"
-      Effect    = "Allow"
+      Sid = "AllowVPCEAccess"
+      Effect = "Allow"
       Principal = "*"
       Action = [
         "s3:GetObject",
@@ -127,6 +126,7 @@ locals {
 
 resource "aws_s3_bucket_policy" "wordpress_media" {
   count  = length(local.statements) > 0 ? 1 : 0
+  
   bucket = aws_s3_bucket.wordpress_media.id
 
   policy = jsonencode({

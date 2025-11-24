@@ -5,18 +5,18 @@
 data "terraform_remote_state" "network_rds" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/primary/network_rds.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/primary/network_rds/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
 data "terraform_remote_state" "alb" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/primary/alb.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/primary/alb/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
@@ -33,27 +33,27 @@ module "sg_ecs" {
 data "terraform_remote_state" "iam" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/global/iam.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/global/iam/terraform.tfstate"
+    region = var.state_bucket_region
   }    
 }
 
 data "terraform_remote_state" "s3" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/primary/s3.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/primary/s3/terraform.tfstate"
+    region = var.state_bucket_region
   }  
 }
 
 data "terraform_remote_state" "cdn_dns" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/global/cdn_dns.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/global/cdn_dns/terraform.tfstate"
+    region = var.state_bucket_region
   }    
 }
 
@@ -63,7 +63,6 @@ module "ecs" {
     vpc_id = data.terraform_remote_state.network_rds.outputs.vpc_id    
     private_subnets_ids = data.terraform_remote_state.network_rds.outputs.private_subnets_ids  
     # RDS data     
-    //rds_name = data.terraform_remote_state.network_rds.outputs.rds_name                                                            
     wordpress_secret_arn = data.terraform_remote_state.network_rds.outputs.wordpress_secret_arn
     # ALB data
     target_group_arn = data.terraform_remote_state.alb.outputs.target_group_arn
@@ -75,7 +74,7 @@ module "ecs" {
     cloudfront_distribution_id = data.terraform_remote_state.cdn_dns.outputs.media_distribution_id
     cloudfront_media_domain = data.terraform_remote_state.cdn_dns.outputs.media_distribution_domain
     # Docker image
-    docker_image_uri = var.docker_image_uri_config
+    ecr_image_uri = var.ecr_image_uri
     # ECS configuration
     security_groups = module.sg_ecs.ecs_security_groups
     vpc_endpoints_security_group_id = module.sg_ecs.vpc_endpoints_security_group_id

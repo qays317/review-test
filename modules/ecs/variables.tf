@@ -18,7 +18,7 @@ variable "ecs_task_definition" {
   }))
 }
 
-variable "docker_image_uri" {
+variable "ecr_image_uri" {
   type = string
 }
 

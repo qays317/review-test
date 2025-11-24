@@ -6,6 +6,11 @@ variable "vpc_id" {
     type = string
 }
 
+variable "vpc_cidr" {
+    type = string
+    default = ""
+}
+
 variable "stage_tag" {
     type = string
 }
@@ -17,6 +22,7 @@ variable "security_group" {
             to_port = number
             ip_protocol = string
             cidr_block = optional(string)
+            vpc_cidr = optional(bool)
             source_security_group_name = optional(string)
             prefix_list_ids = optional (list(string))
         })))
@@ -25,6 +31,7 @@ variable "security_group" {
             to_port = number
             ip_protocol = string
             cidr_block = optional(string)
+            vpc_cidr = optional(bool)
             source_security_group_name = optional(string)
             prefix_list_ids = optional (list(string))
         })))

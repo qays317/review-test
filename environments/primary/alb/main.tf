@@ -5,25 +5,39 @@
 data "terraform_remote_state" "network" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/primary/network_rds.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/primary/network_rds/terraform.tfstate"
+    region = var.state_bucket_region
   }  
 }
 
 module "sg_alb" {
   source = "../../../modules/sg"
   vpc_id = data.terraform_remote_state.network.outputs.vpc_id
+  vpc_cidr = data.terraform_remote_state.network.outputs.vpc_cidr
   security_group = var.alb_security_group_config
   stage_tag = "ALB"
 }
 
+module "cert" {
+  count = var.provided_ssl_certificate_arn != "" ? 0 : 1
+  source = "../../../modules/acm"
+
+  domain_name = var.primary_domain
+  subject_alternative_names = ["www.${var.primary_domain}"]
+  hosted_zone_id = var.hosted_zone_id
+  environment = "primary"
+}
+
 module "alb" {
   source = "../../../modules/alb"
+  # VPC configuration
   vpc_id = data.terraform_remote_state.network.outputs.vpc_id
-  target_group = var.target_group_config
   public_subnet_ids = data.terraform_remote_state.network.outputs.public_subnets_ids
-  alb_name = var.alb_name
+  # ALB configuration
   alb_security_group_id = module.sg_alb.alb_security_group_id
-  ssl_certificate_arn = var.ssl_certificate_arn
+  target_group = var.target_group_config
+  alb_name = var.alb_name
+  # SSL certificate (whether to create it or already provided)
+  ssl_certificate_arn = var.provided_ssl_certificate_arn != "" ? var.provided_ssl_certificate_arn : module.cert.certificate_arn
 }

@@ -48,18 +48,3 @@ variable "lambda_role_arn" {
     type = string
 }
 
-/*
-variable "bastion_host" {                   # Secondary solution for RDS MySQL Database initialization 
-    type = map(object({
-        ami = string
-        instance_type = string
-        key_name = string
-        subnet_name = string
-        security_group_name = string
-        associate_public_ip_address = bool
-        iam_role_name = string
-        rds_instance_name = string
-        user_data = string
-    }))
-}
-*/

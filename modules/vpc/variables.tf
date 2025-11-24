@@ -1,5 +1,5 @@
 //==========================================================================================================================================
-//                                                        /modules/infrastructure/variables.tf
+//                                                       /modules/vpc/variables.tf
 //==========================================================================================================================================
 
 variable "vpc" {
@@ -16,15 +16,6 @@ variable "subnet" {
         map_public_ip_on_launch = bool
     }))
 }
-/*
-variable "nat_gateway_subnet_name" {
-    type = string
-}
-*/
-/*
-variable "networkfirewall_subnet_name" {
-    type = string
-}*/
 
 variable "route_table" {
     type = map(object({
@@ -32,7 +23,6 @@ variable "route_table" {
             cidr_block = string
             gateway = optional(bool, false)
             nat_gateway = optional(bool, false)
-            network_firewall = optional(bool, false)
         })))
         subnets_names = list(string)
     }))

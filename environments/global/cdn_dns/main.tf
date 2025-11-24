@@ -1,52 +1,63 @@
 data "terraform_remote_state" "oac" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/global/oac.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/global/oac/terraform.tfstate"
+    region = var.state_bucket_region
   }  
 }
 
 data "terraform_remote_state" "primary_s3" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/primary/s3.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/primary/s3/terraform.tfstate"
+    region = var.state_bucket_region
   }  
 }
 
 data "terraform_remote_state" "dr_s3" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/dr/s3.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/dr/s3/terraform.tfstate"
+    region = var.state_bucket_region
   }  
 }
 
 data "terraform_remote_state" "primary_alb" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/primary/alb.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/primary/alb/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
 data "terraform_remote_state" "dr_alb" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/dr/alb.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/dr/alb/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
-module "cdn" {
-  source = "../../../modules/cdn"
+module "cloudfront_cert" {
+  count = var.provided_ssl_certificate_arn != "" ? 0 :1
+  source = "../../../modules/acm"
 
-  # Primary origins
+  domain_name = var.primary_domain
+  subject_alternative_names = ["www.${var.primary_domain}"]
+  hosted_zone_id = var.hosted_zone_id
+  environment = "CDN"
+
+}
+
+module "cdn_dns" {
+  source = "../../../modules/cdn_dns"
+
+  # Primary origins_naame
   primary_alb_dns_name = data.terraform_remote_state.primary_alb.outputs.alb_dns_name
   primary_alb_zone_id = data.terraform_remote_state.primary_alb.outputs.alb_zone_id
 
@@ -61,5 +72,5 @@ module "cdn" {
   cloudfront_distribution = var.cloudfront_distribution_config
   primary_domain = var.primary_domain
   hosted_zone_id = var.hosted_zone_id
-  ssl_certificate_arn = var.ssl_certificate_arn
+  ssl_certificate_arn = var.provided_ssl_certificate_arn != "" ? var.provided_ssl_certificate_arn : module.cloudfront_cert.certificate_arn
 }

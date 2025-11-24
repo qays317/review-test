@@ -1,21 +1,6 @@
 /*
 ===================================================================================================================================================================
 ===================================================================================================================================================================
-                                                          ECR Pull Through Cache Rule
-===================================================================================================================================================================
-===================================================================================================================================================================
-*/
-
-resource "aws_ecr_pull_through_cache_rule" "dockerhub_qaysalnajjad" {
-  count                 = var.enable_ecr_pull_through ? 1 : 0
-  ecr_repository_prefix = "dockerhub-qaysalnajjad"
-  upstream_registry_url = "registry-1.docker.io"
-}
-
-
-/*
-===================================================================================================================================================================
-===================================================================================================================================================================
                                                                    ECS Cluster
 ===================================================================================================================================================================
 ===================================================================================================================================================================
@@ -40,50 +25,33 @@ resource "aws_ecs_cluster" "wordpress" {
 
 data "aws_region" "current" {}
 
-
 locals {
   container_definitions = {
     for k, v in var.ecs_task_definition : k => jsonencode([{
       name = "wordpress-container"
-      image = var.docker_image_uri
+      image = var.ecr_image_uri
       portMappings = [{ containerPort = 80, protocol = "tcp" }]
 
       environment = [
         {
-          name = "AWS_REGION"
+          name = "AWS_REGION"          # Required for SDK
           value = data.aws_region.current.name
         },
         {
-          name = "AWS_S3_BUCKET"
+          name = "AWS_S3_BUCKET"       # Used by AS3CF
           value = var.s3_bucket_name
         },
+        {
+          name = "CLOUDFRONT_DOMAIN"   # Used by AS3CF
+          value = var.cloudfront_media_domain
+        },        
         {
           name = "WORDPRESS_URL"
           value = "https://${var.primary_domain}"
         },
         {
-          name = "CLOUDFRONT_DOMAIN"
-          value = var.cloudfront_media_domain
-        },
-        {
-          name = "CLOUDFRONT_DISTRIBUTION_ID"
-          value = var.cloudfront_distribution_id
-        },
-        {
-          name = "CLOUDFRONT_MEDIA_DOMAIN"
-          value = var.cloudfront_media_domain
-        },
-        {
-          name = "AS3CF_PROVIDER"
-          value = "aws"
-        },
-        {
-          name = "AS3CF_DELIVERY_PROVIDER"
-          value = "cloudfront"
-        },
-        {
-          name = "AS3CF_CLOUDFRONT_DOMAIN"
-          value = var.cloudfront_media_domain
+          name  = "WORDPRESS_ADMIN_URL"
+          value = "https://admin.${var.primary_domain}"
         }
       ]
 

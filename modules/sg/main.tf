@@ -1,3 +1,7 @@
+//==========================================================================================================================================
+//                                                                 SG
+//==========================================================================================================================================
+
 resource "aws_security_group" "main" {
     for_each = var.security_group
       name = each.key
@@ -24,7 +28,7 @@ locals {
           from_port = rule.from_port
           to_port = rule.to_port
           protocol = rule.ip_protocol
-          cidr_block = lookup(rule, "cidr_block", null)
+          cidr_block = lookup(rule, "vpc_cidr", false) == true ? var.vpc_cidr : try(rule.cidr_block, null)
           source_security_group_name = lookup(rule, "source_security_group_name", null)
           prefix_list_ids = lookup(rule, "prefix_list_ids", null)
         }
@@ -38,7 +42,7 @@ locals {
           from_port = rule.from_port
           to_port = rule.to_port
           protocol = rule.ip_protocol
-          cidr_block = lookup(rule, "cidr_block", null)
+          cidr_block = lookup(rule, "vpc_cidr", false) == true ? var.vpc_cidr : try(rule.cidr_block, null)
           source_security_group_name = lookup(rule, "source_security_group_name", null)
           prefix_list_ids = lookup(rule, "prefix_list_ids", null)
         }

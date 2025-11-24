@@ -17,14 +17,6 @@ variable "subnet_config" {
     }))
 }
 
-variable "nat_gateway_subnet_name_config" {
-    type = string
-}
-
-variable "networkfirewall_subnet_name_config" {
-    type = string
-}
-
 variable "route_table_config" {
     type = map(object({
         routes = optional(map(object({

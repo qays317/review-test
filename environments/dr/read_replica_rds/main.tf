@@ -1,10 +1,9 @@
-# Remote state for network
 data "terraform_remote_state" "network" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/dr/network.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/dr/network/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
@@ -12,9 +11,9 @@ data "terraform_remote_state" "network" {
 data "terraform_remote_state" "primary_rds" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/primary/network_rds.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/primary/network_rds/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
@@ -64,7 +63,7 @@ resource "aws_security_group" "rds_dr" {
     from_port = 3306
     to_port = 3306
     protocol = "tcp"
-    cidr_blocks = ["172.16.0.0/16"]
+    cidr_blocks = [data.terraform_remote_state.network.outputs.vpc_cidr]
   }
   
   tags = {

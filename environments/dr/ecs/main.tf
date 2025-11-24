@@ -5,18 +5,18 @@
 data "terraform_remote_state" "network" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/dr/network.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/dr/network/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
 data "terraform_remote_state" "alb" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/dr/alb.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/dr/alb/terraform.tfstate"
+    region = var.state_bucket_region
   }
 }
 
@@ -33,36 +33,36 @@ module "sg_ecs" {
 data "terraform_remote_state" "iam" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/global/iam.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/global/iam/terraform.tfstate"
+    region = var.state_bucket_region
   }    
 }
 
 data "terraform_remote_state" "s3" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/dr/s3.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/dr/s3/terraform.tfstate"
+    region = var.state_bucket_region
   }  
 }
 
 data "terraform_remote_state" "rds" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/dr/read_replica_rds.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/dr/read_replica_rds/terraform.tfstate"
+    region = var.state_bucket_region
   }  
 }
 
 data "terraform_remote_state" "cdn_dns" {
   backend = "s3"
   config = {
-    bucket = var.state_bucket
-    key = "environments/global/cdn_dns.tfstate"
-    region = "eu-central-1"
+    bucket = var.state_bucket_name
+    key = "environments/global/cdn_dns/terraform.tfstate"
+    region = var.state_bucket_region
   }    
 }
 
@@ -84,7 +84,7 @@ module "ecs" {
     cloudfront_distribution_id = data.terraform_remote_state.cdn_dns.outputs.media_distribution_id
     cloudfront_media_domain = data.terraform_remote_state.cdn_dns.outputs.media_distribution_domain
     # Docker image
-    docker_image_uri = var.docker_image_uri_config
+    ecr_image_uri = var.ecr_image_uri
     # ECS configuration
     security_groups = module.sg_ecs.ecs_security_groups
     vpc_endpoints_security_group_id = module.sg_ecs.vpc_endpoints_security_group_id

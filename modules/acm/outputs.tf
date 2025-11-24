@@ -1,9 +1,8 @@
-output "certificate_arn" {
-  description = "ARN of the ACM certificate"
-  value       = aws_acm_certificate_validation.cert.certificate_arn
-}
+//==========================================================================================================================================
+//                                                         /modules/acm/outputs.tf
+//==========================================================================================================================================
 
-output "certificate_domain_name" {
-  description = "Domain name of the certificate"
-  value       = aws_acm_certificate.cert.domain_name
+output "certificate_arn" {
+  description = "ARN of ACM certificate (newly created)"
+  value = aws_acm_certificate_validation.cert[0].certificate_arn
 }

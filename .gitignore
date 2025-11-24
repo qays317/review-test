@@ -1,17 +1,62 @@
-aws-disaster-recovery.tgz
+# -------------------------------------------------------------------
+# Terraform
+# -------------------------------------------------------------------
 .terraform/
-*.pem
-*.key
-aws-disaster-recovery.tgz
-.terraform/
-*.pem
-*.key
-aws-disaster-recovery.tgz
-.terraform/
-terraform.tfstate*
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+crash.log
+override.tf
+override.tf.json
 *.tfvars
+*.auto.tfvars
+
+# Ignore IDE-specific override files
+*_override.tf
+*_override.tf.json
+
+# -------------------------------------------------------------------
+# Sensitive files
+# -------------------------------------------------------------------
 *.pem
 *.key
-project_diagram.pdf
+*.crt
+*.p12
+*.csr
+*.env
+.env.*
+
+# Script runtime generated files
+scripts/deployment-automation-scripts/runtime/*
+
+# -------------------------------------------------------------------
+# Logs & temp files
+# -------------------------------------------------------------------
+*.log
+*.tmp
+*.swp
+
+# -------------------------------------------------------------------
+# Node, Python, CLI tools (in case future scripts use them)
+# -------------------------------------------------------------------
 node_modules/
+venv/
+__pycache__/
+
+# -------------------------------------------------------------------
+# Editor / OS files
+# -------------------------------------------------------------------
 .vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# -------------------------------------------------------------------
+# Archives
+# -------------------------------------------------------------------
+*.zip
+*.tgz
+*.tar.gz
+
+# Project-level archive (your original ignore)
+aws-disaster-recovery.tgz

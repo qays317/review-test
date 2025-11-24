@@ -1,3 +1,7 @@
+//==========================================================================================================================================
+//                                                                IAM
+//==========================================================================================================================================
+
 resource "aws_iam_role" "this" {
   name = var.role_name
 
@@ -13,7 +17,6 @@ resource "aws_iam_role" "this" {
       }
     ]
   })
-  tags = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "managed" {
@@ -24,16 +27,16 @@ resource "aws_iam_role_policy_attachment" "managed" {
 
 resource "aws_iam_role_policy" "inline" {
   count = length(var.inline_policy_statements) > 0 ? 1 : 0
-  name  = var.policy_name
-  role  = aws_iam_role.this.id
+  name = var.policy_name
+  role = aws_iam_role.this.id
 
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       for s in var.inline_policy_statements : merge(
         {
-          Effect   = s.Effect
-          Action   = s.Action
+          Effect = s.Effect
+          Action = s.Action
           Resource = s.Resource
         },
         s.Condition != null ? { Condition = s.Condition } : {}

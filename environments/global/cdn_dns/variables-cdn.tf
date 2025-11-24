@@ -17,17 +17,14 @@ variable "cloudfront_distribution_config" {
     }))
 }
 
-variable "ssl_certificate_arn" {                 # Used by CloudFront for SSL Termination
-    description = "SSL certificate ARN for custom domain (required)"
+variable "provided_ssl_certificate_arn" {                
     type = string
 }
 
-variable "hosted_zone_id" {                      # Used for creating DNS records that point the domain to CloudFront
-    description = "Route 53 hosted zone ID"
+variable "hosted_zone_id" {                    
     type = string
 }
 
 variable "primary_domain" {
-    description = "Primary custom domain without www (e.g., yourdomain.com)"
     type = string
 }
