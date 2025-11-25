@@ -17,11 +17,18 @@ echo "⚠️  WARNING: This will destroy ALL resources created by deploy.sh"
 echo "⚠️  This action is IRREVERSIBLE!"
 echo ""
 
-read -p "Are you sure you want to continue? (yes/no): " confirm
-if [ "$confirm" != "yes" ]; then
-    echo "❌ Destruction cancelled."
-    exit 1
+# Skip confirmation when running in CI
+if [[ "$CI" == "true" ]]; then
+  confirm="yes"
+else
+  read -p "Are you sure? (yes/no): " confirm
 fi
+
+if [[ "$confirm" != "yes" ]]; then
+  echo "❌ Destruction cancelled."
+  exit 1
+fi
+
 echo ""
 echo "🔥 Destroying resources in reverse order..."
 echo ""

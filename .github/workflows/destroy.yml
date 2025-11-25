@@ -29,5 +29,5 @@ jobs:
 
 
       - name: Run Destroy Script
-        run: yes | ./scripts/deployment-automation-scripts/destroy.sh
+        run: ./scripts/deployment-automation-scripts/destroy.sh
 
