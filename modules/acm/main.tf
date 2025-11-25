@@ -24,7 +24,7 @@ resource "aws_acm_certificate" "cert" {
 # ----------------------------------------------------------------------
 locals {
   dvos = [
-    for dov in aws_aws_acm_certificate.cert.domain_validation_options : 
+    for dov in aws_acm_certificate.cert.domain_validation_options : 
     {
       name = dov.resource_record_name
       type = dov.resource_record_type
