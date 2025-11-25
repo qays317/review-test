@@ -23,18 +23,25 @@ resource "aws_acm_certificate" "cert" {
 # DNS Validation Records
 # ----------------------------------------------------------------------
 locals {
-  validation_domains = tolist(aws_acm_certificate.cert.domain_validation_options)
+  dvos = [
+    for dov in aws_aws_acm_certificate.cert.domain_validation_options : 
+    {
+      name = dov.resource_record_name
+      type = dov.resource_record_type
+      value = dov.resource_record_value
+    }
+  ]
 }
 resource "aws_route53_record" "cert_validation" {
-  for_each = {for k, v in local.validation_domains : k => v }
+  for_each = {
+    for index, dov in local.dvos : index => dov
+  } 
   zone_id = var.hosted_zone_id
-  //name = local.validation_domains[count.index].resource_record_name
-  name = v.resource_record_name
-  //type = local.validation_domains[count.index].resource_record_type
-  type = v.resource_record_type
+  name = each.value.name
+  type = each.value.type
   ttl = 60
-  //records = [local.validation_domains[count.index].resource_record_value]
-  records = [v.resource_record_name]
+  records = [each.value.value]
+  
 }
 
 
@@ -43,5 +50,7 @@ resource "aws_route53_record" "cert_validation" {
 # ----------------------------------------------------------------------
 resource "aws_acm_certificate_validation" "cert" {
   certificate_arn         = aws_acm_certificate.cert.arn
-  validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
+  validation_record_fqdns = [
+    for r in aws_route53_record.cert_validation : r.fqdn
+  ]
 }
