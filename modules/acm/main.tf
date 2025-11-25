@@ -7,9 +7,7 @@
 # ----------------------------------------------------------------------
 resource "aws_acm_certificate" "cert" {
   domain_name               = var.domain_name
-  subject_alternative_names = [
-    for name in var.subject_alternative_names : replace(name, "/\\.$/", "")
-  ]
+  subject_alternative_names = var.subject_alternative_names
   validation_method         = "DNS"
 
   lifecycle {
@@ -24,24 +22,16 @@ resource "aws_acm_certificate" "cert" {
 # ----------------------------------------------------------------------
 # DNS Validation Records
 # ----------------------------------------------------------------------
-
+locals {
+  validation_domains = tolist(aws_acm_certificate.cert.domain_validation_options)
+}
 resource "aws_route53_record" "cert_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.cert.domain_validation_options :
-    dvo.domain_name => {
-      name  = dvo.resource_record_name
-      type  = dvo.resource_record_type
-      value = dvo.resource_record_value
-    }
-  }
-
+  count = length(local.validation_domains)
   zone_id = var.hosted_zone_id
-  name    = each.value.name
-  type    = each.value.type
-  ttl     = 60
-  records = [each.value.value]
-
-  allow_overwrite = true
+  name = local.validation_domains[count.index].resource_record_name
+  type = local.validation_domains[count.index].resource_record_type
+  ttl = 60
+  records = [local.validation_domains[count.index].resource_record_value]
 }
 
 
