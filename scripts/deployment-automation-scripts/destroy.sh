@@ -121,34 +121,35 @@ destroy_stack() {
 # DESTROY ORDER
 # -----------------------------
 
-#destroy_stack "dr/ecs"
-#destroy_stack "primary/ecs"
+destroy_stack "dr/ecs"
+destroy_stack "primary/ecs"
 
-if [[ -f "runtime/primary_ecr_image_uri" ]]; then
-    PRIMARY_ECR_IMAGE_URI=$(cat runtime/primary_ecr_image_uri)
+if [[ -f "runtime/primary-ecr-image-uri" ]]; then
+    PRIMARY_ECR_IMAGE_URI=$(cat runtime/primary-ecr-image-uri)
     PRIMARY_IMAGE_TAG="${PRIMARY_ECR_IMAGE_URI##*:}"
-    echo "Loaded image for cleanup: $ECR_IMAGE_URI"
+    echo "Loaded image for cleanup: $PRIMARY_ECR_IMAGE_URI"
     aws ecr batch-delete-image \
       --repository-name "$ECR_REPO_NAME" \
       --image-ids imageTag="$PRIMARY_IMAGE_TAG" \
       --region "$PRIMARY_REGION" || true
-    rm -rf runtime/primary_ecr_image_uri
 else
     echo "No runtime ECR image state found in primary environment — skipping image cleanup."
 fi
 
-if [[ -f "runtime/dr_ecr_image_uri" ]]; then
-    DR_ECR_IMAGE_URI=$(cat runtime/dr_ecr_image_uri)
+if [[ -f "runtime/dr-ecr-image-uri" ]]; then
+    DR_ECR_IMAGE_URI=$(cat runtime/dr-ecr-image-uri)
     DR_IMAGE_TAG="${DR_ECR_IMAGE_URI##*:}"
-    echo "Loaded image for cleanup: $ECR_IMAGE_URI"
+    echo "Loaded image for cleanup: $DR_ECR_IMAGE_URI"
     aws ecr batch-delete-image \
       --repository-name "$ECR_REPO_NAME" \
       --image-ids imageTag="$DR_IMAGE_TAG" \
       --region "$DR_REGION" || true
-    rm -rf runtime/dr_ecr_image_uri
 else
     echo "No runtime ECR image state found in DR environment — skipping image cleanup."
 fi
+
+rm -rf runtime 2>/dev/null
+echo "runtime directory removed"
 
 destroy_stack "global/cdn_dns"
 destroy_stack "dr/alb"
@@ -160,7 +161,6 @@ destroy_stack "dr/network"
 destroy_stack "primary/network_rds"
 destroy_stack "global/oac"
 destroy_stack "global/iam"
-
 
 echo ""
 echo "🎉 All resources have been successfully destroyed!"
