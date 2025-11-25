@@ -3,13 +3,13 @@
 //==========================================================================================================================================
 
 # ----------------------------------------------------------------------
-# Create certificate only if NOT provided
+# Create certificate
 # ----------------------------------------------------------------------
 resource "aws_acm_certificate" "cert" {
 
-  domain_name = var.domain_name
+  domain_name               = var.domain_name
   subject_alternative_names = var.subject_alternative_names
-  validation_method = "DNS"
+  validation_method         = "DNS"
 
   lifecycle {
     create_before_destroy = true
@@ -25,12 +25,16 @@ resource "aws_acm_certificate" "cert" {
 # ----------------------------------------------------------------------
 resource "aws_route53_record" "cert_validation" {
 
-  for_each = {for dvo in aws_acm_certificate.cert[0].domain_validation_options : dvo.domain_name => dvo}
+  for_each = {
+    for dvo in aws_acm_certificate.cert.domain_validation_options :
+    dvo.domain_name => dvo
+  }
+
   zone_id = var.hosted_zone_id
 
-  name = each.value.resource_record_name
-  type = each.value.resource_record_type
-  ttl = 60
+  name    = each.value.resource_record_name
+  type    = each.value.resource_record_type
+  ttl     = 60
   records = [each.value.resource_record_value]
 
   allow_overwrite = true
@@ -41,10 +45,9 @@ resource "aws_route53_record" "cert_validation" {
 # ----------------------------------------------------------------------
 resource "aws_acm_certificate_validation" "cert" {
 
-  certificate_arn = aws_acm_certificate.cert[0].arn
+  certificate_arn = aws_acm_certificate.cert.arn
 
   validation_record_fqdns = [
     for r in aws_route53_record.cert_validation : r.fqdn
   ]
 }
-
