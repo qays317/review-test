@@ -28,7 +28,7 @@ jobs:
         run: |
           chmod +x scripts/deployment-automation-scripts/deploy.sh
           chmod +x scripts/deployment-automation-scripts/destroy.sh
-          chmod +x scripts/deployment-automation-scripts/push-docker-hub-to-ecr.sh
+          chmod +x scripts/deployment-automation-scripts/pull-docker-hub-to-ecr.sh
 
       - name: Run Destroy Script
         run: ./scripts/deployment-automation-scripts/destroy.sh
