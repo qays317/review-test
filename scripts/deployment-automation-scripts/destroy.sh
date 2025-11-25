@@ -162,7 +162,7 @@ else
     echo "Runtime directory does not exist — nothing to remove."
 fi
 
-destroy_stack "global/cdn_dns"
+#destroy_stack "global/cdn_dns"
 destroy_stack "dr/alb"
 destroy_stack "dr/s3"
 destroy_stack "dr/read_replica_rds"
