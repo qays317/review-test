@@ -39,5 +39,5 @@ module "alb" {
   target_group = var.target_group_config
   alb_name = var.alb_name
   # SSL certificate (whether to create it or already provided)
-  ssl_certificate_arn = var.provided_ssl_certificate_arn != "" ? var.provided_ssl_certificate_arn : module.cert[0].certificate_arn
+  ssl_certificate_arn = var.provided_ssl_certificate_arn != "" ? var.provided_ssl_certificate_arn : module.cert.certificate_arn
 }
