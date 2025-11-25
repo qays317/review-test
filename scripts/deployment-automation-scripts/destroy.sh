@@ -148,8 +148,12 @@ else
     echo "No runtime ECR image state found in DR environment — skipping image cleanup."
 fi
 
-rm -rf runtime 2>/dev/null
-echo "runtime directory removed"
+if [[ -d "${RUNTIME_DIR}" ]]; then
+    echo "Removing runtime directory..."
+    rm -rf "${RUNTIME_DIR}" || true
+else
+    echo "Runtime directory does not exist — nothing to remove."
+fi
 
 destroy_stack "global/cdn_dns"
 destroy_stack "dr/alb"

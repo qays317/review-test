@@ -25,10 +25,9 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Make destroy scripts executable
-        run: |
-          chmod +x scripts/deployment-automation-scripts/deploy.sh
-          chmod +x scripts/deployment-automation-scripts/destroy.sh
-          chmod +x scripts/deployment-automation-scripts/pull-docker-hub-to-ecr.sh
+        run: chmod +x scripts/deployment-automation-scripts/destroy.sh
+
 
       - name: Run Destroy Script
-        run: ./scripts/deployment-automation-scripts/destroy.sh
+        run: yes | ./scripts/deployment-automation-scripts/destroy.sh
+
