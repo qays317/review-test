@@ -32,7 +32,7 @@ HOSTED_ZONE_ID="Z046647128J97ELQJFGYW"
 ############################################
 #  SSL certificates
 ############################################
-PRIMARY_ALB_SSL_CERTIFICATE_ARN="arn:aws:acm:us-east-1:156166604445:certificate/e061179d-aea4-41bb-a266-9ecabb227bbe"
+PRIMARY_ALB_SSL_CERTIFICATE_ARN="arn:aws:acm:us-east-1:156166604445:certificate/a0b247b3-045d-4db9-8eae-7474cdf613e0"
 DR_ALB_SSL_CERTIFICATE_ARN=""
-CLOUDFRONT_SSL_CERTIFICATE_ARN="arn:aws:acm:us-east-1:156166604445:certificate/e061179d-aea4-41bb-a266-9ecabb227bbe"
+CLOUDFRONT_SSL_CERTIFICATE_ARN="arn:aws:acm:us-east-1:156166604445:certificate/a0b247b3-045d-4db9-8eae-7474cdf613e0"
 
