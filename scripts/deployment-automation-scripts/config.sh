@@ -7,7 +7,7 @@ DR_REGION="ca-central-1"
 ############################################
 #  Terraform Backend Config
 ############################################
-TF_STATE_BUCKET_NAME="github-state-bucket-26112025"
+TF_STATE_BUCKET_NAME="github-state-bucket-261120255"
 TF_STATE_BUCKET_REGION="us-east-1"
 
 ############################################
