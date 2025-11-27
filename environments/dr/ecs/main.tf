@@ -80,7 +80,7 @@ module "ecs" {
     load_balancer_arn_suffix = data.terraform_remote_state.alb.outputs.alb_arn_suffix
     # Storage & CDN
     s3_bucket_name = data.terraform_remote_state.s3.outputs.bucket_name
-    primary_domain = data.terraform_remote_state.cdn_dns.outputs.primary_domain
+    primary_domain = var.primary_domain
     cloudfront_distribution_id = data.terraform_remote_state.cdn_dns.outputs.media_distribution_id
     cloudfront_media_domain = data.terraform_remote_state.cdn_dns.outputs.media_distribution_domain
     # Docker image
