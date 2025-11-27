@@ -86,12 +86,14 @@ STACK_VARS["global/cdn_dns"]="\
 # PRIMARY ECS
 STACK_VARS["primary/ecs"]="\
   -var-file=ecs.tfvars \
+  -var primary_domain=$PRIMARY_DOMAIN" \
   -var state_bucket_name=$TF_STATE_BUCKET_NAME \
   -var state_bucket_region=$TF_STATE_BUCKET_REGION"
 
 # DR ECS
 STACK_VARS["dr/ecs"]="\
   -var-file=ecs.tfvars \
+  -var primary_domain=$PRIMARY_DOMAIN" \
   -var state_bucket_name=$TF_STATE_BUCKET_NAME \
   -var state_bucket_region=$TF_STATE_BUCKET_REGION"
 
