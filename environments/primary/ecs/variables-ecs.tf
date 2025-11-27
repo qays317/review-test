@@ -56,3 +56,6 @@ variable "vpc_endpoints_config" {
   }))
 }
 
+variable "primary_domain" {
+type = string
+}
