@@ -206,7 +206,7 @@ resource "aws_route53_record" "www" {
   name = local.www_domain
   type = "CNAME"
   ttl = 300
-  records = [local.oot_domain]
+  records = [local.root_domain]
 }
 
 
