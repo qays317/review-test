@@ -188,28 +188,20 @@ ordered_cache_behavior {
 //                                                             Route 53
 //==========================================================================================================================================
 
-# Route 53 DNS records for root domain
-resource "aws_route53_record" "root" {
+# Route 53 DNS records for www and root domains
+resource "aws_route53_record" "main" {
+  for_each = toset(local.domains)
   zone_id = var.hosted_zone_id
-  name = local.root_domain
+  name = each.value
   type = "A"
   alias {
-    name = aws_cloudfront_distribution.main.domain_name
+    name = values({
+      for k, v in var.cloudfront_distribution : k => aws_cloudfront_distribution.main[k].domain_name
+      if coalesce(v.alb_origin, false) == true})[0]
     zone_id = "Z2FDTNDATAQYW2"         # CloudFront's global hosted zone ID
     evaluate_target_health = false     # CloudFront handles its own health checks and failover
   }
 }
-
-# Route 53 DNS records for www domain
-resource "aws_route53_record" "www" {
-  zone_id = var.hosted_zone_id
-  name = local.www_domain
-  type = "CNAME"
-  ttl = 300
-  records = [local.root_domain]
-}
-
-
 
 # Route 53 record for admin subdomain - points directly to ALB (bypasses CloudFront)
 resource "aws_route53_record" "admin_subdomain" {
