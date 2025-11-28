@@ -13,7 +13,7 @@ TF_STATE_BUCKET_REGION="eu-central-1"
 ############################################
 #  Docker / Container Config
 ############################################
-DOCKERHUB_IMAGE="qaysalnajjad/ecs-wordpress-app:v2.26"
+DOCKERHUB_IMAGE="qaysalnajjad/ecs-wordpress-app:v2.27"
 ECR_REPO_NAME="ecs-wordpress-app"
 
 ############################################
