@@ -42,7 +42,11 @@ locals {
           value = var.s3_bucket_name
         },
         {
-          name = "CLOUDFRONT_DOMAIN"   # Used by AS3CF
+          name "AS3CF_USE_CLOUDFRONT"
+          value = true
+        },
+        {
+          name = "AS3CF_CLOUDFRONT_DOMAIN"   # Used by AS3CF
           value = var.cloudfront_media_domain
         },        
         {
