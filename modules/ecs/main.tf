@@ -46,7 +46,7 @@ locals {
           value = "true"
         },
         {
-          name = "AS3CF_CLOUDFRONT_DOMAIN" 
+          name = "CLOUDFRONT_DOMAIN" 
           value = var.cloudfront_media_domain
         },        
         {
