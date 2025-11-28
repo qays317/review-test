@@ -38,15 +38,15 @@ locals {
           value = data.aws_region.current.name
         },
         {
-          name = "AWS_S3_BUCKET"       # Used by AS3CF
+          name = "AWS_S3_BUCKET"    
           value = var.s3_bucket_name
         },
         {
           name = "AS3CF_USE_CLOUDFRONT"
-          value = true
+          value = "true"
         },
         {
-          name = "AS3CF_CLOUDFRONT_DOMAIN"   # Used by AS3CF
+          name = "AS3CF_CLOUDFRONT_DOMAIN" 
           value = var.cloudfront_media_domain
         },        
         {
