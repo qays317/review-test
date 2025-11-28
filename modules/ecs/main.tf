@@ -42,7 +42,7 @@ locals {
           value = var.s3_bucket_name
         },
         {
-          name "AS3CF_USE_CLOUDFRONT"
+          name = "AS3CF_USE_CLOUDFRONT"
           value = true
         },
         {
