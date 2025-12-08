@@ -1,0 +1,35 @@
+name: Deploy AWS Disaster Recovery
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::127214183643:role/github-actions-terraform-role
+          aws-region: us-east-1
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Make deployment scripts executable
+        run: |
+          chmod +x scripts/deployment-automation-scripts/deploy.sh
+          chmod +x scripts/deployment-automation-scripts/destroy.sh
+          chmod +x scripts/deployment-automation-scripts/pull-docker-hub-to-ecr.sh
+
+
+      - name: Run Deployment Script
+        run: ./scripts/deployment-automation-scripts/deploy.sh

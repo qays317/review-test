@@ -1,0 +1,33 @@
+name: Destroy AWS Disaster Recovery
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::127214183643:role/github-actions-terraform-role
+          aws-region: us-east-1
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Make destroy scripts executable
+        run: chmod +x scripts/deployment-automation-scripts/destroy.sh
+
+
+      - name: Run Destroy Script
+        run: ./scripts/deployment-automation-scripts/destroy.sh
+
