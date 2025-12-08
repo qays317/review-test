@@ -40,11 +40,7 @@ locals {
         {
           name = "AWS_S3_BUCKET"       # Used by AS3CF, WP Offload Media needs bucket name
           value = var.s3_bucket_name
-        },/*
-        {
-          name = "CLOUDFRONT_DOMAIN"   # Used by AS3CF
-          value = var.cloudfront_distribution_domain
-        },        
+        },  
         {
           name = "WORDPRESS_URL"
           value = "https://${var.primary_domain}"
@@ -56,7 +52,7 @@ locals {
         {
           name  = "CLOUDFRONT_DOMAIN"
           value = var.primary_domain
-        }*/
+        }
       ]
 
       secrets = [
