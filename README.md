@@ -97,7 +97,7 @@ This project deploys a multi-region, production-grade WordPress platform using:
 
 * Multi-region ECS + ALB
 * Cross-region database replication
-* CloudFront origin failover with no DNS delay
+* CloudFront origin failover with zero DNS changes or propagation delay
 
 ### 🌍 Global Content Delivery
 
