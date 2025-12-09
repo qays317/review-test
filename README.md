@@ -37,66 +37,58 @@ All infrastructure is 100% managed using **Terraform**, following AWS **Well-Arc
 
 This project deploys a multi-region, production-grade WordPress platform using:
 
-* **Primary Region:** `us-east-1`
-* **DR Region:** `ca-central-1`
-* **Global routing:** **CloudFront + Route 53**
-* **Containers:** ECS Fargate
+* **Primary Region (Active):** `us-east-1`
+* **DR Region (Warm Standby):** `ca-central-1`
+* **Global routing:** One CloudFront distribution + Route 53
+* **Containers:** ECS Fargate (Primary active, DR scaled to 0)
 * **Database:** RDS MySQL with cross-region read-replica
-* **Media:** S3 + CloudFront
-* **Failover:** CloudFront Origin Groups (primary ALB → DR ALB)
+* **Media Storage:** S3 with cross-region replication
+* **Origin Failover:** CloudFront automatically fails over to DR ALB & DR S3
 --- 
 
 ## 🏗 Multi-Region Architecture (ASCII Diagram)
 
 ```text
-                               ┌──────────────┐
-                               │   Route 53   │
-                               └───────┬──────┘
-                                       │
-                            ┌──────────▼──────────┐
-                            │     CloudFront      │
-                            │     Origin Groups   │
-                            └──────────┬──────────┘
-                    (HTTP errors)      │       (Normal)
-                         Failover      │        Flow
-                          ▼            │         ▼
-                ┌────────────────┐     │   ┌────────────────┐
-                │    ALB (DR)    │◄────┘   │ ALB (Primary)  │
-                └────────────────┘         └────────────────┘
-                       │                            │
-                   us-east-1                   ca-central-1
-                     (DR)                       (Primary)
-                       │                            │
-                ┌────────────────┐          ┌────────────────┐
-                │ ECS Fargate    │          │ ECS Fargate    │
-                │     (0*)       │          │      (2)       │
-                └────────────────┘          └────────────────┘
-                       │                            │
-                       └──────────────┬─────────────┘
-                                      │
-                                      |                                 
-                            ┌─────────▼─────────┐
-                            │   WordPress App   │
-                            └─────────┬─────────┘
-                                      │
-                          ┌───────────▼───────────┐
-                          │       RDS MySQL       │
-                          └───────────┬───────────┘
-                                      │
-                    ┌─────────────────▼──────────────────┐
-                    │    Primary Writer (us-east-1)      │
-                    └─────────────────┬──────────────────┘
-                                      │ Replication
-                    ┌─────────────────▼──────────────────┐
-                    │    Read Replica (ca-central-1)     │
-                    └────────────────────────────────────┘
+                                   ┌──────────────┐
+                                   │   Route 53   │
+                                   └───────┬──────┘
+                                           │
+                            ┌──────────────▼────────────────┐
+                            │      CloudFront (Global)      │
+                            │  Origin Groups (Auto Failover)│
+                            └───────────┬───────────┬───────┘
+                                        │           │
+                                      App         Media
+                                 (Dynamic)      (Uploads)
+                                        │           │
+                 ┌─────────────────────▼────┐ ┌─────▼─────────────────────┐
+                 │   ALB Primary (us-east-1)│ │  S3 Primary (us-east-1)   │
+                 └───────────┬──────────────┘ └──────────────┬────────────┘
+                             │                               │
+                        ECS Tasks (Active)               Media Writes
+                    Scale: 2 Tasks (Example)            Replication to DR
+                             │                               │
+                             │                               │
+                 ┌───────────▼──────────────┐ ┌──────────────▼────────────┐
+                 │   ALB DR (ca-central-1)  │ │   S3 DR (ca-central-1)    │
+                 └───────────┬──────────────┘ └───────────────────────────┘
+                             │
+                        ECS Tasks (Standby)
+                      Scale: 0 Tasks (Normal)
 
-
-                Media Failover (Automatic through CloudFront)
-
-                         ┌───────────────┐    Read    ┌───────────────┐
-                         │  S3 Primary   │◄──────────►│     S3 DR     │
-                         └───────────────┘            └───────────────┘
+           Database Layer
+           ┌───────────────────────────┐
+           │   RDS Primary (Writer)    │
+           │        us-east-1          │
+           └────────────┬──────────────┘
+                        │
+                 Replication (Async)
+                        ▼
+           ┌───────────────────────────┐
+           │  RDS Read Replica (DR)    │
+           │      ca-central-1         │
+           └───────────────────────────┘
+                          
 ```
 
 # ⭐ **Key Features**
@@ -211,10 +203,13 @@ This project deploys a multi-region, production-grade WordPress platform using:
 
 ### 🟫 **5. S3 Media Storage**
 
-* Two buckets (Primary + DR)
-* CloudFront reads from both
-* WordPress writes to the primary bucket
-* IAM roles remove need for S3 keys
+* Two buckets: Primary + DR
+* WordPress uploads to primary bucket
+* Cross-Region Replication automatically sends objects to DR bucket
+* CloudFront serves media via S3 origin group failover
+* ECS uses IAM role + VPC endpoint for secure access
+
+Media failover is 100% automatic - no operator intervention needed.
 
 ---
 
@@ -325,7 +320,7 @@ aws-disaster-recovery/
 ├── modules/
 │   ├── acm/
 │   ├── alb/
-│   ├── cdn/
+│   ├── cdn_dns/
 │   ├── ecs/
 │   ├── iam/
 │   ├── rds/
@@ -674,13 +669,13 @@ Achieving zero data loss requires synchronous replication or multi-master setups
 Trade-off:
 Warm standby reduces cost by 50–70% compared to active-active multi-region setups.
 
-4. Route 53 Failover Does Not Validate Database Layer
+4. Health checks do not validate the database layer
 
-* Route 53 health checks validate the ALB/ECS layer, not database availability.
-* If the ALB is healthy but RDS is not, application errors may still occur.
+* CloudFront + ALB health checks validate HTTP availability, not database availability.
+* If ALB/ECS is healthy but RDS is down, users may still see WordPress errors.
 
-Trade-off:
-End-to-end health checking requires custom Lambda health endpoints or multi-layer monitoring, which increases complexity.
+Trade-off: End-to-end DB health checks require custom application endpoints or deeper monitoring.
+For simplicity, this solution checks only at the HTTP level.
 
 5. Lambda Automation Runs Once (Bootstrap Only)
 
