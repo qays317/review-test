@@ -389,6 +389,25 @@ This step enables GitHub Actions OIDC → AWS IAM, allowing GitHub to deploy in 
 | Trust policy restricted to the repository  | security-hardening: only our repository can use this role            |
 | AdministratorAccess policy                 | Full deploy/destroy capabilities (reviewer may restrict this later)  |
 
+⚠️ Important — Update Repository Name Before Deploying Bootstrap
+
+The IAM trust policy created in this step is restricted to a single GitHub repository.
+If you cloned this project into your own GitHub account, you MUST update the repository name in this file:
+```bash
+environments/bootstrap/iam-github-oidc.tf
+```
+find:
+```bash
+repo:QaysAlnajjad/aws-multi-region-wordpress-dr:ref:refs/heads/main
+```
+➡ Replace with your repository identifier:
+```bash
+repo:johnsmith/aws-wp-dr:ref:refs/heads/main
+```
+If you don’t update this, GitHub Actions will fail with:
+
+Not authorized to assume role
+
 Step 3.1 — Authenticate to AWS locally
 
 Either:
