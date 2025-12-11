@@ -66,11 +66,11 @@ module "cdn_dns" {
 
   # CDN configuration
   oac_id = data.terraform_remote_state.oac.outputs.oac_id
-  //cloudfront_distribution = var.cloudfront_distribution_config
 
   # Route 53 configuration
   primary_domain = var.primary_domain
   hosted_zone_id = var.hosted_zone_id
   ssl_certificate_arn = var.provided_ssl_certificate_arn != "" ? var.provided_ssl_certificate_arn : module.cert[0].certificate_arn
   primary_alb_zone_id = data.terraform_remote_state.primary_alb.outputs.alb_zone_id
+  dr_alb_zone_id = data.terraform_remote_state.dr_alb.outputs.alb_zone_id
 }

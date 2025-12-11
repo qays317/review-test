@@ -189,15 +189,52 @@ resource "aws_route53_record" "main" {
   }
 }
 
+resource "aws_route53_health_check" "primary_admin_health" {
+  fqdn = "admin.${var.primary_domain}"
+  type = "HTTPS"
+  resource_path = "/wp-login.php"
+  port = 443
+  failure_threshold = 3
+  request_interval = 30
+
+  tags = {
+    Name = "admin-primary-healthcheck"
+  }
+}
+
 # Route 53 record for admin subdomain - points directly to ALB (bypasses CloudFront)
 resource "aws_route53_record" "admin_subdomain" {
   zone_id = var.hosted_zone_id
   name = "admin.${var.primary_domain}"
   type = "A"
-  
+
+  set_identifier = "primary-admin"
+  failover_routing_policy {
+    type = "PRIMARY"
+  }
+
   alias {
     name = var.primary_alb_dns_name
     zone_id = var.primary_alb_zone_id
+    evaluate_target_health = true
+  }
+
+  health_check_id = aws_route53_health_check.primary_admin_health.id
+}
+
+resource "aws_route53_record" "admin_secondary" {
+  zone_id = var.hosted_zone_id
+  name = "admin.${var.primary_domain}"
+  type = "A"
+
+  set_identifier = "secondary-admin"
+  failover_routing_policy {
+    type = "SECONDARY"
+  }
+
+  alias {
+    name = var.dr_alb_dns_name
+    zone_id = var.dr_alb_zone_id
     evaluate_target_health = true
   }
 }

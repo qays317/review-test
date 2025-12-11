@@ -44,9 +44,8 @@ resource "aws_route53_record" "cert_validation" {
   type = each.value.type
   ttl = 60
   records = [each.value.value]
-  
+  allow_overwrite = true
 }
-
 
 # ----------------------------------------------------------------------
 # Certificate Validation

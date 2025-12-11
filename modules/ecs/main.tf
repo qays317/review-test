@@ -96,6 +96,18 @@ resource "aws_ecs_task_definition" "main" {
     execution_role_arn = var.ecs_execution_role_arn
     task_role_arn = var.ecs_task_role_arn
     container_definitions = local.container_definitions[each.key]
+    volume {
+      name = "wp-uploads"
+      efs_volume_configuration {
+        file_system_id = var.efs_id
+        transit_encryption = "ENABLED"
+        root_directory          = "/"
+        authorization_config {
+          access_point_id = var.efs_access_point_id
+          iam = "ENABLED"
+        }
+      }
+      }
     tags = { 
       Name = each.key
       project = "wordpress"

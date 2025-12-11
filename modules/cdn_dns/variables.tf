@@ -17,6 +17,10 @@ variable "dr_alb_dns_name" {
     type = string
 }
 
+variable "dr_alb_zone_id" {
+    type = string
+}
+
 variable "primary_bucket_regional_domain_name" {
     type = string
 }
