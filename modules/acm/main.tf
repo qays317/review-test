@@ -47,6 +47,7 @@ resource "aws_route53_record" "cert_validation" {
   allow_overwrite = true
 }
 
+
 # ----------------------------------------------------------------------
 # Certificate Validation
 # ----------------------------------------------------------------------
