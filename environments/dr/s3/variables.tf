@@ -12,7 +12,7 @@ variable "s3_vpc_endpoint_id" {
   default = ""
 }
 
-variable "cloudfront_media_distribution_arn" {
+variable "cloudfront_distribution_arn" {
     type = string
     default = ""
 }

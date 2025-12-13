@@ -28,7 +28,8 @@
 |   • vpc_id ─────────────────────────────────┼─────▶ used by primary/alb, primary/ecs
 │   • vpc_cidr ───────────────────────────────┼─────▶ used by primary/alb
 │   • private_subnets_ids ────────────────────┼─────▶ used by primary/ecs
-|   • public_subnets_ids ─────────────────────┼─────▶ used by primary/alb               
+|   • public_subnets_ids ─────────────────────┼─────▶ used by primary/alb   
+|   • rds_identifier ─────────────────────────┼─────▶ used by dr/read_replica_rds            
 |   • wordpress_secret_id ────────────────────┼─────▶ used by dr/read_replica_rds
 |   • wordpress_secret_arn ───────────────────┼─────▶ used by primary/ecs
 └─────────────────────────────────────────────┘
@@ -44,7 +45,7 @@
 │                 primary/s3                  │
 |  INPUTS:                                    |
 |   • s3_bucket_name                          |
-|   • cloudfront_media_distribution_arn       |
+|   • cloudfront_distribution_arn             |
 |   • s3_vpc_endpoint_id                      |
 |   • ecs_task_role_arn                       |
 │  OUTPUTS:                                   │
@@ -61,9 +62,10 @@
 |   • primary_domain                          |
 |   • hosted_zone_id                          |
 |   • provided_ssl_certificate_arn            |
+|   • certificate_sans                        |
 │  OUTPUTS:                                   │
 │   • alb_dns_name ───────────────────────────┼─────▶ used by global/cdn_dns
-│   • alb_zone_id ────────────────────────────┼─────▶ used by global/cdn_dns (to create a Route 53 record for admin access)
+│   • alb_zone_id ────────────────────────────┼─────▶ used by global/cdn_dns (to create a Route 53 primary record for admin access)
 │   • target_group_arn ───────────────────────┼─────▶ used by primary/ecs
 |   • target_group_arn_suffix ────────────────┼─────▶ used by primary/ecs
 |   • alb_arn_suffix ─────────────────────────┼─────▶ used by primary/ecs
@@ -75,7 +77,7 @@
 |   • vpc_cidr                                |
 |   • private_subnets_ids                     |
 |   • rds_identifier                          |
-|   • wordpress_secret_arn                    |
+|   • wordpress_secret_id                     |
 │  OUTPUTS:                                   │
 │   • wordpress_secret_arn ───────────────────┼─────▶ used by dr/ecs 
 └─────────────────────────────────────────────┘
@@ -83,7 +85,7 @@
 │                 dr/s3                       │
 |  INPUTS:                                    |
 |   • s3_bucket_name                          |
-|   • cloudfront_media_distribution_arn       |
+|   • cloudfront_distribution_arn             |
 |   • s3_vpc_endpoint_id                      |
 |   • ecs_task_role_arn                       |
 |   • s3_replication_role_arn                 |
@@ -101,8 +103,10 @@
 |   • primary_domain                          |
 |   • hosted_zone_id                          |
 |   • provided_ssl_certificate_arn            |
+|   • certificate_sans                        |
 │  OUTPUTS:                                   │
 │   • alb_dns_name ───────────────────────────┼─────▶ used by global/cdn_dns
+│   • alb_zone_id ────────────────────────────┼─────▶ used by global/cdn_dns (to create a Route 53 secondary record for admin access)
 │   • target_group_arn ───────────────────────┼─────▶ used by dr/ecs
 |   • target_group_arn_suffix ────────────────┼─────▶ used by dr/ecs 
 |   • alb_arn_suffix ─────────────────────────┼─────▶ used by dr/ecs
@@ -114,15 +118,17 @@
 |   • primary_alb_dns_name                    |
 |   • primary_alb_zone_id                     |
 |   • dr_alb_dns_name                         |
+|   • dr_alb_zone_id                          |
 |   • primary_bucket_regional_domain_name     |
 |   • dr_bucket_regional_domain_name          |
 |   • primary_domain                          |
 |   • hosted_zone_id                          |
 |   • provided_ssl_certificate_arn            |
+|   • certificate_sans                        |
 │  OUTPUTS:                                   │
-│   • distribution_arn ───────────────────────┼─────▶ used by primary/s3, dr/s3
-│   • distribution_domain ────────────────────┼─────▶ used by primary/ecs, dr/ecs
-│   • distribution_id ────────────────────────┼─────▶ used by primary/ecs, dr/ecs
+│   • cloudfront_distribution_arn ────────────┼─────▶ used by primary/s3, dr/s3
+│   • cloudfront_distribution_domain ─────────┼─────▶ used by primary/ecs, dr/ecs
+│   • cloudfront_distribution_id ─────────────┼─────▶ used by primary/ecs, dr/ecs
 └─────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────┐
 │                 primary/ecs                 │
@@ -135,8 +141,8 @@
 |   • alb_arn_suffix                          |
 |   • primary_s3_bucket_name                  |
 |   • primary_domain                          |
-|   • distribution_domain                     |
-|   • distribution_id                         |
+|   • cloudfront_distribution_domain          |
+|   • cloudfront_distribution_id              |
 |   • ecr_image_uri                           |
 |   • ecs_execution_role_arn                  |
 |   • ecs_task_role_arn                       |
@@ -154,8 +160,8 @@
 |   • alb_arn_suffix                          |
 |   • dr_s3_bucket_name                       |
 |   • primary_domain                          |
-|   • distribution_id                         |
-|   • distribution_domain                     |
+|   • cloudfront_distribution_id              |
+|   • cloudfront_distribution_domain          |
 |   • ecr_image_uri                           |
 |   • ecs_execution_role_arn                  |
 |   • ecs_task_role_arn                       |

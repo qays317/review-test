@@ -20,6 +20,3 @@ output "alb_arn_suffix" {
     value = module.alb.alb_arn_suffix
 }
 
-
-
-

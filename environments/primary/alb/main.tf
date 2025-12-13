@@ -24,7 +24,7 @@ module "cert" {
   source = "../../../modules/acm"
 
   domain_name = var.primary_domain
-  subject_alternative_names = ["www.${var.primary_domain}"]
+  subject_alternative_names = var.certificate_sans
   hosted_zone_id = var.hosted_zone_id
   environment = "primary"
 }

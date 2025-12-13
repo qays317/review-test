@@ -21,34 +21,11 @@ module "s3" {
   
   s3_bucket_name = var.s3_bucket_name
   
-  cloudfront_media_distribution_arn = var.cloudfront_media_distribution_arn
+  cloudfront_distribution_arn = var.cloudfront_distribution_arn
   ecs_task_role_arn = var.ecs_task_role_arn
   s3_vpc_endpoint_id = var.s3_vpc_endpoint_id
 }
-/*
-# Cross-region replication from primary to DR
-resource "aws_s3_bucket_replication_configuration" "primary_to_dr" {
-  provider = aws.primary
-  
-  role = data.terraform_remote_state.iam.outputs.s3_replication_role_arn
-  bucket = data.terraform_remote_state.primary_s3.outputs.bucket_name
 
-  rule {
-    id = "replicate-to-dr"
-    status = "Enabled"
-    
-    delete_marker_replication {
-      status = "Enabled"
-    }
-    
-    destination {
-      bucket = module.s3.bucket_arn
-    }
-  }
-
-  depends_on = [module.s3]
-}
-*/
 resource "aws_s3_bucket_replication_configuration" "primary_to_dr" {
   provider = aws.primary
 

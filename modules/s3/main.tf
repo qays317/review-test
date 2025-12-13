@@ -50,17 +50,17 @@ data "aws_caller_identity" "current" {}
 # Conditional bucket policy builder: CloudFront + ECS role + VPCE (only when values provided)
 locals {
   cloudfront_statement = (
-    var.cloudfront_media_distribution_arn != ""
+    var.cloudfront_distribution_arn != ""
   ) ? [
     {
-      Sid = "AllowCloudFrontGetObject-${replace(var.cloudfront_media_distribution_arn, ":", "-")}"
+      Sid = "AllowCloudFrontGetObject-${replace(var.cloudfront_distribution_arn, ":", "-")}"
       Effect = "Allow"
       Principal = { Service = "cloudfront.amazonaws.com" }
       Action = ["s3:GetObject"]
       Resource = "${aws_s3_bucket.wordpress_media.arn}/*"
       Condition = {
         StringEquals = {
-          "AWS:SourceArn" = var.cloudfront_media_distribution_arn
+          "AWS:SourceArn" = var.cloudfront_distribution_arn
           "AWS:SourceAccount" = data.aws_caller_identity.current.account_id
         }
       }
@@ -71,7 +71,7 @@ locals {
     var.ecs_task_role_arn != "" && var.s3_vpc_endpoint_id != ""
   ) ? [
     {
-      Sid    = "AllowEcsViaVpce"
+      Sid = "AllowEcsViaVpce"
       Effect = "Allow"
       Principal = { AWS = var.ecs_task_role_arn }
       Action = [

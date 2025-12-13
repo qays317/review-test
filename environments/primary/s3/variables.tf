@@ -7,7 +7,7 @@ variable "ecs_task_role_arn" {
   default = ""
 }
 
-variable "cloudfront_media_distribution_arn" {
+variable "cloudfront_distribution_arn" {
     type = string
     default = ""
 }

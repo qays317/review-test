@@ -8,7 +8,6 @@ variable "domain_name" {
 
 variable "subject_alternative_names" {
   type = list(string)
-  default = []
 }
 
 variable "hosted_zone_id" {

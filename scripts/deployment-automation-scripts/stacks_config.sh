@@ -34,7 +34,9 @@ STACK_VARS["primary/alb"]="\
   -var state_bucket_region=$TF_STATE_BUCKET_REGION \
   -var primary_domain=$PRIMARY_DOMAIN \
   -var hosted_zone_id=$HOSTED_ZONE_ID \
+  -var certificate_sans=$CERTIFICATE_SANs \
   -var provided_ssl_certificate_arn=$PRIMARY_ALB_SSL_CERTIFICATE_ARN"
+   
 
 # DR Read Replica RDS
 STACK_VARS["dr/read_replica_rds"]="\
@@ -54,6 +56,7 @@ STACK_VARS["dr/alb"]="\
   -var state_bucket_region=$TF_STATE_BUCKET_REGION \
   -var primary_domain=$PRIMARY_DOMAIN \
   -var hosted_zone_id=$HOSTED_ZONE_ID \
+  -var certificate_sans=$CERTIFICATE_SANs \
   -var provided_ssl_certificate_arn=$DR_ALB_SSL_CERTIFICATE_ARN"
 
 # GLOBAL CloudFront + DNS
@@ -63,7 +66,8 @@ STACK_VARS["global/cdn_dns"]="\
   -var state_bucket_region=$TF_STATE_BUCKET_REGION \
   -var provided_ssl_certificate_arn=$CLOUDFRONT_SSL_CERTIFICATE_ARN \
   -var hosted_zone_id=$HOSTED_ZONE_ID \
-  -var primary_domain=$PRIMARY_DOMAIN"
+  -var primary_domain=$PRIMARY_DOMAIN \
+  -var certificate_sans=$CERTIFICATE_SANs"
 
 # PRIMARY ECS
 STACK_VARS["primary/ecs"]="\
