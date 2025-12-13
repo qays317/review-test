@@ -62,8 +62,8 @@ module "ecs" {
     # Storage & CDN
     s3_bucket_name = var.primary_media_s3_bucket
     primary_domain = var.primary_domain
-    cloudfront_distribution_id = data.terraform_remote_state.cdn_dns.outputs.distribution_id
-    cloudfront_distribution_domain = data.terraform_remote_state.cdn_dns.outputs.distribution_domain
+    cloudfront_distribution_id = data.terraform_remote_state.cdn_dns.outputs.cloudfront_distribution_id
+    cloudfront_distribution_domain = data.terraform_remote_state.cdn_dns.outputs.cloudfront_distribution_domain
     # Docker image
     ecr_image_uri = var.ecr_image_uri
     # ECS configuration
